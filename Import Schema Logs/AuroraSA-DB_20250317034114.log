@@ -1,0 +1,88 @@
+17/03/2025 12:41:14	This log contains information about the import schema operation into project 'AuroraSA-DB' on computer 'GONZA-PC' by user 'Gonza'.
+17/03/2025 12:41:14	Import of database schema has started.
+17/03/2025 12:41:21	Gathering database credentials
+17/03/2025 12:41:21	Gathering database options
+17/03/2025 12:41:21	Gathering generic database scoped configuration option
+17/03/2025 12:41:21	Gathering users
+17/03/2025 12:41:21	Gathering roles
+17/03/2025 12:41:21	Gathering application roles
+17/03/2025 12:41:21	Gathering role memberships
+17/03/2025 12:41:21	Gathering filegroups
+17/03/2025 12:41:21	Gathering full-text catalogs
+17/03/2025 12:41:21	Gathering assemblies
+17/03/2025 12:41:21	Gathering certificates
+17/03/2025 12:41:21	Gathering asymmetric keys
+17/03/2025 12:41:21	Gathering symmetric keys
+17/03/2025 12:41:21	Gathering encrypted symmetric keys
+17/03/2025 12:41:21	Gathering schemas
+17/03/2025 12:41:21	Gathering XML schema collections
+17/03/2025 12:41:21	Gathering user-defined data types
+17/03/2025 12:41:21	Gathering user-defined types
+17/03/2025 12:41:21	Gathering table types
+17/03/2025 12:41:21	Gathering unique keys for table types
+17/03/2025 12:41:21	Gathering primary keys for table types
+17/03/2025 12:41:21	Gathering indexes for table types
+17/03/2025 12:41:21	Gathering check constraints for table types
+17/03/2025 12:41:21	Gathering default constraints for table types
+17/03/2025 12:41:21	Gathering partition functions
+17/03/2025 12:41:21	Gathering partition schemes
+17/03/2025 12:41:21	Gathering functions
+17/03/2025 12:41:22	Gathering encrypted functions
+17/03/2025 12:41:22	Gathering aggregates
+17/03/2025 12:41:22	Gathering procedures
+17/03/2025 12:41:22	Gathering encrypted procedures
+17/03/2025 12:41:22	Gathering tables
+17/03/2025 12:41:22	Gathering primary keys
+17/03/2025 12:41:22	Gathering unique constraints
+17/03/2025 12:41:22	Gathering foreign keys
+17/03/2025 12:41:22	Gathering default constraints
+17/03/2025 12:41:22	Gathering check constraints
+17/03/2025 12:41:22	Gathering views
+17/03/2025 12:41:22	Gathering encrypted views
+17/03/2025 12:41:22	Gathering indexes
+17/03/2025 12:41:22	Gathering statistics
+17/03/2025 12:41:22	Gathering full-text index stoplists
+17/03/2025 12:41:22	Gathering search property lists
+17/03/2025 12:41:22	Gathering search properties
+17/03/2025 12:41:22	Gathering full-text indexes
+17/03/2025 12:41:22	Gathering column store indexes
+17/03/2025 12:41:22	Gathering spatial indexes
+17/03/2025 12:41:22	Gathering XML indexes
+17/03/2025 12:41:22	Gathering Selective XML indexes
+17/03/2025 12:41:22	Gathering encrypted triggers
+17/03/2025 12:41:22	Gathering triggers
+17/03/2025 12:41:22	Gathering encrypted and clr ddl triggers
+17/03/2025 12:41:22	Gathering ddl triggers
+17/03/2025 12:41:22	Creating edge constraints
+17/03/2025 12:41:22	Gathering synonyms
+17/03/2025 12:41:22	Gathering defaults
+17/03/2025 12:41:22	Gathering data constraint uddt bindings
+17/03/2025 12:41:22	Gathering rules
+17/03/2025 12:41:22	Gathering data constraint uddt bindings
+17/03/2025 12:41:22	Gathering message types
+17/03/2025 12:41:22	Gathering queues
+17/03/2025 12:41:22	Gathering contracts
+17/03/2025 12:41:22	Gathering services
+17/03/2025 12:41:22	Gathering event notifications
+17/03/2025 12:41:22	Gathering remote service bindings
+17/03/2025 12:41:22	Gathering broker priorities
+17/03/2025 12:41:22	Gathering signatures
+17/03/2025 12:41:22	Gathering compression options
+17/03/2025 12:41:22	Gathering sequence types
+17/03/2025 12:41:22	Gathering security policies
+17/03/2025 12:41:22	Gather column encryption keys
+17/03/2025 12:41:22	Gathering column master keys
+17/03/2025 12:41:22	Gathering external data sources
+17/03/2025 12:41:22	Gathering external file formats
+17/03/2025 12:41:22	Gathering external tables
+17/03/2025 12:41:22	Gathering XML index compression options
+17/03/2025 12:41:22	Gathering extended properties
+17/03/2025 12:41:22	Gathering assemblies
+17/03/2025 12:41:22	Gathering credentials
+17/03/2025 12:41:22	Gathering logins
+17/03/2025 12:41:22	Gathering server audits
+17/03/2025 12:41:23	Scanning project for duplicate elements
+17/03/2025 12:41:23	Finished duplicate element processing
+17/03/2025 12:41:24	Finished importing database.
+17/03/2025 12:41:24	A summary of the import was saved to the following location: E:\Proyectos\AuroraSA-DB\Import Schema Logs\AuroraSA-DB_20250317034114.log
+17/03/2025 12:41:24	Click Finish to continue...

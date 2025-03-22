@@ -1,0 +1,6 @@
+E:\Proyectos\AuroraSA-DB\bin\Debug\AuroraSA-DB.dacpac
+E:\Proyectos\AuroraSA-DB\bin\Debug\AuroraSA_DB.dll
+E:\Proyectos\AuroraSA-DB\bin\Debug\AuroraSA_DB.pdb
+E:\Proyectos\AuroraSA-DB\obj\Debug\AuroraSA-DB.sqlproj.AssemblyReference.cache
+E:\Proyectos\AuroraSA-DB\obj\Debug\AuroraSA_DB.dll
+E:\Proyectos\AuroraSA-DB\obj\Debug\AuroraSA_DB.pdb
