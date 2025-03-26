@@ -4,63 +4,61 @@ Script de creacion de procedures ABM (Alta - Baja - Modificacion)
 GRodriguezAR
 */
 
-USE [AuroraSA_DB]
-GO
-
 ------------------------------- FUNCIONES DE UTILIDAD -------------------------------------------
--- Validar el formato del CUIL (XX-XXXXXXXX-X)
-CREATE OR ALTER FUNCTION Utilidades.ValidarCuil(@cuil VARCHAR(13))
-RETURNS BIT
+-- Validar el formato del CUIL (XX-XXXXXXXX-X) incluyendo dígito verificador
+CREATE FUNCTION Utilidades.ValidarCuil(@cuil VARCHAR(25))
+RETURNS TABLE
 AS
-BEGIN
-	IF	@cuil LIKE '2[0347]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9]' OR
-		@cuil LIKE '3[034]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9]'
-        RETURN 1;
-    RETURN 0;
-END;
+RETURN (
+    SELECT 
+        CASE 
+            WHEN @cuil IS NULL THEN 0
+            WHEN LEN(cuil) <> 11 THEN 0
+            ELSE 
+                CASE 
+                    WHEN (11 - (
+                        CAST(SUBSTRING(cuil, 1, 1) AS INT)*5 +
+                        CAST(SUBSTRING(cuil, 2, 1) AS INT)*4 +
+                        CAST(SUBSTRING(cuil, 3, 1) AS INT)*3 +
+                        CAST(SUBSTRING(cuil, 4, 1) AS INT)*2 +
+                        CAST(SUBSTRING(cuil, 5, 1) AS INT)*7 +
+                        CAST(SUBSTRING(cuil, 6, 1) AS INT)*6 +
+                        CAST(SUBSTRING(cuil, 7, 1) AS INT)*5 +
+                        CAST(SUBSTRING(cuil, 8, 1) AS INT)*4 +
+                        CAST(SUBSTRING(cuil, 9, 1) AS INT)*3 +
+                        CAST(SUBSTRING(cuil, 10, 1) AS INT)*2
+                    ) % 11) = 10
+                    THEN CASE WHEN CAST(RIGHT(cuil, 1) AS INT) = 9 THEN 1 ELSE 0 END
+                    ELSE CASE 
+                            WHEN CAST(RIGHT(cuil, 1) AS INT) = 
+                                (11 - (
+                                    CAST(SUBSTRING(cuil, 1, 1) AS INT)*5 +
+                                    CAST(SUBSTRING(cuil, 2, 1) AS INT)*4 +
+                                    CAST(SUBSTRING(cuil, 3, 1) AS INT)*3 +
+                                    CAST(SUBSTRING(cuil, 4, 1) AS INT)*2 +
+                                    CAST(SUBSTRING(cuil, 5, 1) AS INT)*7 +
+                                    CAST(SUBSTRING(cuil, 6, 1) AS INT)*6 +
+                                    CAST(SUBSTRING(cuil, 7, 1) AS INT)*5 +
+                                    CAST(SUBSTRING(cuil, 8, 1) AS INT)*4 +
+                                    CAST(SUBSTRING(cuil, 9, 1) AS INT)*3 +
+                                    CAST(SUBSTRING(cuil, 10, 1) AS INT)*2
+                                ))
+                            THEN 1 
+                            ELSE 0 
+                         END
+                    END
+        END AS Valido
+    FROM (SELECT REPLACE(REPLACE(@cuil, '-', ''), ' ', '') AS cuil) AS t
+);
 GO
-
--- Validar formato de email personal
-CREATE OR ALTER FUNCTION Utilidades.ValidarEmailPersonal(@email VARCHAR(255))
-RETURNS BIT
-AS
-BEGIN
-    IF @email LIKE '_%@_%._%' 
-		RETURN 1;
-    RETURN 0;
-END;
-GO
-
--- Validar formato de email empresa
-CREATE OR ALTER FUNCTION Utilidades.ValidarEmailEmpresa(@email VARCHAR(255))
-RETURNS BIT
-AS
-BEGIN
-    IF LOWER(@email) LIKE '_%@aurorsa.com.ar' 
-		RETURN 1;
-    RETURN 0;
-END;
-GO
-
--- Validar género (Solo M o F)
-CREATE OR ALTER FUNCTION Utilidades.ValidarGenero(@genero CHAR(1))
-RETURNS BIT
-AS
-BEGIN
-    IF @genero IN ('M', 'F')
-        RETURN 1;
-    RETURN 0;
-END;
-GO
-
 
 ----------------------------------------------------------------------------------------------
 -- ABM Empresa.Sucursal
-CREATE OR ALTER PROCEDURE Empresa.InsertarSucursal_sp
-	@codigoSucursal	 CHAR(3),
+CREATE  PROCEDURE Empresa.InsertarSucursal_sp
+	@codigoSucursal	 VARCHAR(25),
     @direccion       NVARCHAR(100),
     @ciudad          VARCHAR(50),
-    @telefono        CHAR(10),
+    @telefono        VARCHAR(25),
     @horario         VARCHAR(55)	
 AS
 BEGIN
@@ -120,19 +118,18 @@ END;
 GO
 
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Empresa.ActualizarSucursal_sp
-    @codigoSucursal  CHAR(3),
+CREATE  PROCEDURE Empresa.ActualizarSucursal_sp
+    @codigoSucursal  VARCHAR(25),
     @direccion       NVARCHAR(100) = NULL,
     @ciudad          VARCHAR(50) = NULL,
-    @telefono        CHAR(10) = NULL,
+    @telefono        VARCHAR(25) = NULL,
     @horario         VARCHAR(55) = NULL,
-	@nuevoCodigo	 CHAR(3) = NULL,
-    @activo          BIT = NULL
+	@nuevoCodigo	 VARCHAR(25) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF @direccion IS NULL AND @ciudad IS NULL AND @telefono IS NULL AND @horario IS NULL AND @nuevoCodigo IS NULL AND @activo IS NULL
+    IF @direccion IS NULL AND @ciudad IS NULL AND @telefono IS NULL AND @horario IS NULL AND @nuevoCodigo IS NULL
     BEGIN
         RAISERROR('Debe indicar al menos un cambio.', 16, 1);
 		RETURN;
@@ -145,9 +142,9 @@ BEGIN
 	END;
 
 	-- Verificacion sucursal existente
-    IF NOT EXISTS (SELECT 1 FROM Empresa.Sucursal WHERE codigoSucursal = @codigoSucursal)
+    IF NOT EXISTS (SELECT 1 FROM Empresa.Sucursal WHERE codigoSucursal = @codigoSucursal AND activo = 1)
     BEGIN    
-		RAISERROR('No existe la sucursal indicada.', 16, 1);
+		RAISERROR('No existe la sucursal indicada o no se encuentra activa.', 16, 1);
 		RETURN;
 	END
 
@@ -175,12 +172,6 @@ BEGIN
          RETURN;
     END
 
-    IF @activo NOT IN (0,1)
-    BEGIN
-         RAISERROR('Activo solo puede tener los valores 0 y 1.', 16, 1);
-         RETURN;
-    END
-
     IF @nuevoCodigo IS NOT NULL AND @nuevoCodigo <> @codigoSucursal
     BEGIN
         IF @nuevoCodigo NOT LIKE '[A-Z][A-Z][0-9]'
@@ -201,15 +192,14 @@ BEGIN
 		ciudad			= ISNULL(@ciudad, ciudad),
 		telefono		= ISNULL(@telefono, telefono),
 		horario			= ISNULL(@horario, horario),
-		codigoSucursal	= ISNULL(@nuevoCodigo, codigoSucursal),
-        activo          = ISNULL(@activo, activo)
+		codigoSucursal	= ISNULL(@nuevoCodigo, codigoSucursal)
 	WHERE codigoSucursal = @codigoSucursal;
 	
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Empresa.EliminarSucursal_sp
-    @codigoSucursal CHAR(3)
+CREATE  PROCEDURE Empresa.EliminarSucursal_sp
+    @codigoSucursal VARCHAR(25)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -226,11 +216,30 @@ BEGIN
     WHERE codigoSucursal = @codigoSucursal;
 END;
 GO
+----------------------------------------------------------------------------------------------
+CREATE  PROCEDURE Empresa.ReactivarSucursal_sp
+    @codigoSucursal VARCHAR(25)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM Empresa.Sucursal WHERE codigoSucursal = @codigoSucursal AND activo = 0)
+	BEGIN
+        RAISERROR('No existe la sucursal indicada o ya se encuentra activa.', 16, 1);
+		RETURN;
+	END
+
+    -- Borrado lógico
+    UPDATE Empresa.Sucursal
+    SET activo = 1
+    WHERE codigoSucursal = @codigoSucursal;
+END;
+GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Empresa.Cargo
-CREATE OR ALTER PROCEDURE Empresa.InsertarCargo_sp
-	@nombre VARCHAR(20),
+CREATE  PROCEDURE Empresa.InsertarCargo_sp
+	@nombre      VARCHAR(20),
     @descripcion NVARCHAR(100)
 AS
 BEGIN
@@ -265,36 +274,29 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Empresa.ActualizarCargo_sp
+CREATE  PROCEDURE Empresa.ActualizarCargo_sp
 	@nombre      VARCHAR(20),
     @descripcion NVARCHAR(100) = NULL,
-	@nuevoNombre VARCHAR(20) = NULL,
-    @activo      BIT = NULL
+	@nuevoNombre VARCHAR(20) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF @descripcion IS NULL AND @nuevoNombre IS NULL AND @activo IS NULL
+    IF @descripcion IS NULL AND @nuevoNombre IS NULL
     BEGIN
         RAISERROR('Debe indicar al menos un cambio.', 16, 1);
 		RETURN;
     END
 
-    IF NOT EXISTS (SELECT 1 FROM Empresa.Cargo WHERE nombre = @nombre)
+    IF NOT EXISTS (SELECT 1 FROM Empresa.Cargo WHERE nombre = @nombre AND activo = 1)
 	BEGIN
-        RAISERROR('El cargo no existe.', 16, 1);
+        RAISERROR('El cargo no existe o no se encuentra activo.', 16, 1);
 		RETURN;
 	END
 
     IF LEN(LTRIM(RTRIM(@descripcion))) = 0
     BEGIN
          RAISERROR('La descripción del cargo no puede estar vacía.', 16, 1);
-         RETURN;
-    END
-
-    IF @activo NOT IN (0,1)
-    BEGIN
-         RAISERROR('Activo solo puede tener los valores 0 y 1.', 16, 1);
          RETURN;
     END
 
@@ -315,13 +317,12 @@ BEGIN
 
     UPDATE Empresa.Cargo
     SET descripcion = ISNULL(@descripcion, descripcion),
-		nombre      = ISNULL(@nuevoNombre,nombre),
-        activo      = ISNULL(@activo, activo)
+		nombre      = ISNULL(@nuevoNombre,nombre)
     WHERE nombre = @nombre;
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Empresa.EliminarCargo_sp
+CREATE  PROCEDURE Empresa.EliminarCargo_sp
 	@nombre VARCHAR(20)
 AS
 BEGIN
@@ -338,11 +339,29 @@ BEGIN
     WHERE nombre = @nombre;
 END;
 GO
+----------------------------------------------------------------------------------------------
+CREATE  PROCEDURE Empresa.ReactivarCargo_sp
+	@nombre VARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM Empresa.Cargo WHERE nombre = @nombre AND activo = 0)
+	BEGIN
+        RAISERROR('El cargo no existe o no ya se encuentra activo.', 16, 1);
+		RETURN;
+	END
+
+    UPDATE Empresa.Cargo
+    SET activo = 1
+    WHERE nombre = @nombre;
+END;
+GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Empresa.Turno
-CREATE OR ALTER PROCEDURE Empresa.InsertarTurno_sp
-	@acronimo CHAR(2),
+CREATE  PROCEDURE Empresa.InsertarTurno_sp
+	@acronimo    VARCHAR(25),
     @descripcion VARCHAR(25)
 AS
 BEGIN
@@ -377,16 +396,15 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Empresa.ActualizarTurno_sp
-	@acronimo       CHAR(2),
-    @descripcion    VARCHAR(25) = NULL,
-	@nuevoAcronimo  CHAR(2) = NULL,
-    @activo         BIT = NULL
+CREATE  PROCEDURE Empresa.ActualizarTurno_sp
+	@acronimo       VARCHAR(25),
+    @descripcion    NVARCHAR(25) = NULL,
+	@nuevoAcronimo  VARCHAR(25) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF @descripcion IS NULL AND @nuevoAcronimo IS NULL AND @activo IS NULL
+    IF @descripcion IS NULL AND @nuevoAcronimo IS NULL
     BEGIN
         RAISERROR('Debe indicar al menos un cambio.', 16, 1);
 		RETURN;
@@ -398,21 +416,15 @@ BEGIN
 		RETURN;
 	END
 
-    IF NOT EXISTS (SELECT 1 FROM Empresa.Turno WHERE acronimo = @acronimo)
+    IF NOT EXISTS (SELECT 1 FROM Empresa.Turno WHERE acronimo = @acronimo AND activo = 1)
 	BEGIN
-        RAISERROR('El turno no existe.', 16, 1);
+        RAISERROR('El turno no existe o no se encuentra activo.', 16, 1);
 		RETURN;
 	END
 
 	IF LEN(LTRIM(RTRIM(@descripcion))) = 0
     BEGIN
          RAISERROR('La nueva descripción del turno no puede estar vacía.', 16, 1);
-         RETURN;
-    END
-
-    IF @activo NOT IN (0,1)
-    BEGIN
-         RAISERROR('Activo solo puede tener los valores 0 y 1.', 16, 1);
          RETURN;
     END
 
@@ -433,14 +445,13 @@ BEGIN
 
     UPDATE Empresa.Turno
     SET descripcion = ISNULL(@descripcion, descripcion),
-		acronimo    = ISNULL(@nuevoAcronimo, acronimo),
-        activo      = ISNULL(@activo, activo)
+		acronimo    = ISNULL(@nuevoAcronimo, acronimo)
     WHERE acronimo = @acronimo;
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Empresa.EliminarTurno_sp
-	@acronimo CHAR(2) 
+CREATE  PROCEDURE Empresa.EliminarTurno_sp
+	@acronimo VARCHAR(25) 
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -462,23 +473,47 @@ BEGIN
     WHERE acronimo = @acronimo;
 END;
 GO
+----------------------------------------------------------------------------------------------
+CREATE  PROCEDURE Empresa.ReactivarTurno_sp
+	@acronimo VARCHAR(25) 
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @acronimo NOT LIKE '[A-Z][A-Z]'
+	BEGIN
+        RAISERROR('El formato de turno es inválido.', 16, 1);
+		RETURN;
+	END
+
+    IF NOT EXISTS (SELECT 1 FROM Empresa.Turno WHERE acronimo = @acronimo AND activo = 0)
+	BEGIN
+        RAISERROR('El turno no existe o ya se encuentra activo.', 16, 1);
+		RETURN;
+	END
+
+    UPDATE Empresa.Turno
+    SET activo = 1
+    WHERE acronimo = @acronimo;
+END;
+GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Empresa.Empleado
-CREATE OR ALTER PROCEDURE Empresa.InsertarEmpleado_sp
+CREATE  PROCEDURE Empresa.InsertarEmpleado_sp
     @legajo         INT,
     @nombre			VARCHAR(30),
     @apellido		VARCHAR(30),
-    @genero			CHAR(1),
-    @cuil			CHAR(13),
-    @telefono		CHAR(10),
+    @genero			VARCHAR(25),
+    @cuil			VARCHAR(25),
+    @telefono		VARCHAR(25),
     @domicilio		NVARCHAR(100),
     @fechaAlta		DATE = NULL,
     @mailPersonal	VARCHAR(55),
     @mailEmpresa	VARCHAR(55),
     @cargo          VARCHAR(20),
-    @sucursal       CHAR(3),
-    @turno          CHAR(2)
+    @sucursal       VARCHAR(25),
+    @turno          VARCHAR(25)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -496,6 +531,7 @@ BEGIN
     IF EXISTS (SELECT 1 FROM Empresa.Empleado WHERE legajo = @legajo)
     BEGIN
 		RAISERROR('El legajo ya está registrado.', 16, 1);
+        RETURN;
 	END
 
 	-- Verificacion formato de cuil
@@ -508,6 +544,7 @@ BEGIN
 	IF EXISTS (SELECT 1 FROM Empresa.Empleado WHERE cuilHASH = HASHBYTES('SHA2_512', @cuil))
     BEGIN
 		RAISERROR('El empleado ya existe.', 16, 1);
+        RETURN;
 	END
 
     IF LEN(LTRIM(RTRIM(@nombre))) = 0
@@ -522,7 +559,7 @@ BEGIN
          RETURN;
     END
 
-	IF Utilidades.ValidarGenero(@genero) = 0
+	IF UPPER(@genero) NOT IN ('M', 'F')
 	BEGIN
 		RAISERROR('El formato del género es inválido.',16,1)
 		RETURN;
@@ -541,13 +578,13 @@ BEGIN
     END
 
 	-- Verificacion formato de mail
-	IF Utilidades.ValidarEmailPersonal(@mailPersonal) = 0
+	IF @mailPersonal NOT LIKE '_%@_%._%' 
 	BEGIN
 		RAISERROR('El formato de mail personal es inválido.', 16, 1);
 		RETURN;
 	END
 
-	IF Utilidades.ValidarEmailEmpresa(@mailEmpresa) = 0
+	IF LOWER(@mailEmpresa) NOT LIKE '_%@aurorasa.com.ar' 
 	BEGIN
 		RAISERROR('El formato de mail de la empresa es inválido.', 16, 1);
 		RETURN;
@@ -606,14 +643,14 @@ BEGIN
         @legajo,
 		@nombre,	
 		@apellido,
-		@genero,
+		UPPER(@genero),
         EncryptByKey(Key_GUID('LlaveSimetrica'), @cuil),
         HASHBYTES('SHA2_512', @cuil),
 		EncryptByKey(Key_GUID('LlaveSimetrica'), @telefono),
         EncryptByKey(Key_GUID('LlaveSimetrica'), @domicilio),
 		ISNULL(@fechaAlta,GETDATE()),
-        EncryptByKey(Key_GUID('LlaveSimetrica'), @mailPersonal),
-		@mailEmpresa,
+        EncryptByKey(Key_GUID('LlaveSimetrica'), LOWER(@mailPersonal)),
+		LOWER(@mailEmpresa),
 		@idCargo,
         @idSucursal,
 		@idTurno
@@ -621,22 +658,21 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Empresa.ActualizarEmpleado_sp
+CREATE  PROCEDURE Empresa.ActualizarEmpleado_sp
     @legajo         INT,
     @nombre			VARCHAR(30) = NULL,
     @apellido		VARCHAR(30) = NULL,
-    @genero			CHAR(1) = NULL,
-    @cuil			CHAR(13) = NULL,
-    @telefono		CHAR(10) = NULL,
+    @genero			VARCHAR(25) = NULL,
+    @cuil			VARCHAR(25) = NULL,
+    @telefono		VARCHAR(25) = NULL,
     @domicilio		NVARCHAR(100) = NULL,
     @fechaAlta		DATE = NULL,
     @mailPersonal	VARCHAR(55) = NULL,
     @mailEmpresa	VARCHAR(55) = NULL,
     @cargo          VARCHAR(20) = NULL,
-    @sucursal       CHAR(3) = NULL,
-    @turno          CHAR(2) = NULL,
-    @nuevoLegajo    CHAR(13) = NULL,
-    @activo         BIT = NULL
+    @sucursal       VARCHAR(25) = NULL,
+    @turno          VARCHAR(25) = NULL,
+    @nuevoLegajo    VARCHAR(25) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -646,7 +682,7 @@ BEGIN
             @idTurno    INT;
 
     IF @nombre IS NULL AND @apellido IS NULL AND @genero IS NULL AND @cuil IS NULL AND @telefono IS NULL AND @domicilio IS NULL AND @fechaAlta IS NULL
-       AND @mailPersonal IS NULL AND @mailEmpresa IS NULL AND @cargo IS NULL AND @sucursal IS NULL AND @turno IS NULL AND @nuevoLegajo IS NULL AND @activo IS NULL
+       AND @mailPersonal IS NULL AND @mailEmpresa IS NULL AND @cargo IS NULL AND @sucursal IS NULL AND @turno IS NULL AND @nuevoLegajo IS NULL
     BEGIN
         RAISERROR('Debe indicar al menos un cambio.', 16, 1);
 		RETURN;
@@ -658,12 +694,12 @@ BEGIN
 		RETURN;
 	END
 
-    IF NOT EXISTS (SELECT 1 FROM Empresa.Empleado WHERE legajo = @legajo)
+    IF NOT EXISTS (SELECT 1 FROM Empresa.Empleado WHERE legajo = @legajo AND activo = 1)
     BEGIN
-		RAISERROR('El empleado no existe', 16, 1);
+		RAISERROR('El empleado no existe o no se encuentra activo.', 16, 1);
 	END
 
-    IF Utilidades.ValidarCuil(@cuil) = 0
+    IF @cuil IS NOT NULL AND Utilidades.ValidarCuil(@cuil) = 0
 	BEGIN
 		RAISERROR('El formato de cuil es inválido.',16,1)
 		RETURN;
@@ -687,7 +723,7 @@ BEGIN
          RETURN;
     END
 
-	IF Utilidades.ValidarGenero(@genero) = 0
+	IF UPPER(@genero) NOT IN ('M', 'F')
 	BEGIN
 		RAISERROR('El formato del nuevo género es inválido.',16,1)
 		RETURN;
@@ -705,13 +741,13 @@ BEGIN
          RETURN;
     END
 
-	IF Utilidades.ValidarEmailPersonal(@mailPersonal) = 0
+	IF @mailPersonal NOT LIKE '_%@_%._%' 
 	BEGIN
 		RAISERROR('El formato del nuevo mail personal es inválido.', 16, 1);
 		RETURN;
 	END
 
-	IF Utilidades.ValidarEmailEmpresa(@mailEmpresa) = 0
+	IF LOWER(@mailEmpresa) NOT LIKE '_%@aurorasa.com.ar' 
 	BEGIN
 		RAISERROR('El formato del nuevo mail de la empresa es inválido.', 16, 1);
 		RETURN;
@@ -750,12 +786,6 @@ BEGIN
         RETURN;
     END
 
-    IF @activo NOT IN (0,1)
-    BEGIN
-         RAISERROR('Activo solo puede tener los valores 0 y 1.', 16, 1);
-         RETURN;
-    END
-
     IF @nuevoLegajo IS NOT NULL AND @nuevoLegajo <> @legajo
     BEGIN
         IF @legajo <= 0
@@ -775,23 +805,22 @@ BEGIN
     SET legajo       = ISNULL(@nuevoLegajo, legajo),
         nombre	     = ISNULL(@nombre, nombre),
         apellido     = ISNULL(@apellido, apellido),
-		genero	     = ISNULL(@genero, genero),
+		genero	     = ISNULL(UPPER(@genero), genero),
 		cuil	     = ISNULL(EncryptByKey(Key_GUID('LlaveSimetrica'), @cuil), cuil),
         cuilHASH     = ISNULL(HASHBYTES('SHA2_512', @cuil), cuilHASH),
         telefono     = ISNULL(EncryptByKey(Key_GUID('LlaveSimetrica'), @telefono), telefono),
 		domicilio    = ISNULL(EncryptByKey(Key_GUID('LlaveSimetrica'), @domicilio), domicilio),
 		fechaAlta    = ISNULL(@fechaAlta, fechaAlta),
-		mailPersonal = ISNULL(EncryptByKey(Key_GUID('LlaveSimetrica'), @mailPersonal), mailPersonal),
-		mailEmpresa  = ISNULL(@mailEmpresa, mailEmpresa),
+		mailPersonal = ISNULL(EncryptByKey(Key_GUID('LlaveSimetrica'), LOWER(@mailPersonal)), mailPersonal),
+		mailEmpresa  = ISNULL(LOWER(@mailEmpresa), mailEmpresa),
         idCargo      = ISNULL(@idCargo, idCargo),
 		idSucursal   = ISNULL(@idSucursal, idSucursal),
-		idTurno	     = ISNULL(@idTurno, idTurno),
-        activo       = ISNULL(@activo, activo)
+		idTurno	     = ISNULL(@idTurno, idTurno)
     WHERE legajo = @legajo;
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Empresa.EliminarEmpleado_sp
+CREATE  PROCEDURE Empresa.EliminarEmpleado_sp
     @legajo INT
 AS
 BEGIN
@@ -814,11 +843,34 @@ BEGIN
     WHERE legajo = @legajo;
 END;
 GO
+----------------------------------------------------------------------------------------------
+CREATE  PROCEDURE Empresa.ReactivarEmpleado_sp
+    @legajo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
 
+    IF @legajo <= 0
+    BEGIN
+	    RAISERROR('El formato del legajo es inválido.',16,1)
+	    RETURN;
+	END
+
+    IF NOT EXISTS (SELECT 1 FROM Empresa.Empleado WHERE legajo = @legajo AND activo = 0)
+    BEGIN
+	    RAISERROR('El empleado no existe o ya se encuentra activo.', 16, 1);
+        RETURN;
+	END
+
+    UPDATE Empresa.Empleado
+    SET activo = 1
+    WHERE legajo = @legajo;
+END;
+GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Inventario.LineaProducto
-CREATE OR ALTER PROCEDURE Inventario.InsertarLineaProducto_sp
+CREATE  PROCEDURE Inventario.InsertarLineaProducto_sp
     @descripcion VARCHAR(30)
 AS
 BEGIN
@@ -841,7 +893,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Inventario.ActualizarLineaProducto_sp
+CREATE  PROCEDURE Inventario.ActualizarLineaProducto_sp
     @descripcion      VARCHAR(30),
     @nuevaDescripcion VARCHAR(30) = NULL,
     @activo           BIT = NULL
@@ -855,17 +907,11 @@ BEGIN
 		RETURN;
     END
 
-	IF NOT EXISTS (SELECT 1 FROM Inventario.LineaProducto WHERE descripcion = @descripcion)
+	IF NOT EXISTS (SELECT 1 FROM Inventario.LineaProducto WHERE descripcion = @descripcion AND activo = 1)
 	BEGIN
-		RAISERROR('La linea de producto no existe.',16,1);
+		RAISERROR('La linea de producto no existe o no se encuentra activa.',16,1);
 		RETURN;
 	END
-
-    IF @activo NOT IN (0,1)
-    BEGIN
-         RAISERROR('Activo solo puede tener los valores 0 y 1.', 16, 1);
-         RETURN;
-    END
 
     IF @nuevaDescripcion IS NOT NULL AND @nuevaDescripcion <> @descripcion
     BEGIN
@@ -883,13 +929,12 @@ BEGIN
     END
 
 	UPDATE Inventario.LineaProducto
-	SET descripcion = ISNULL(@nuevaDescripcion, descripcion),
-        activo      = ISNULL(@activo, activo)
+	SET descripcion = ISNULL(@nuevaDescripcion, descripcion)
 	WHERE descripcion = @descripcion;
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Inventario.EliminarLineaProducto_sp
+CREATE  PROCEDURE Inventario.EliminarLineaProducto_sp
 	@descripcion VARCHAR(30)
 AS
 BEGIN
@@ -897,7 +942,7 @@ BEGIN
 
 	IF NOT EXISTS (SELECT 1 FROM Inventario.LineaProducto WHERE descripcion = @descripcion AND activo = 1)
 	BEGIN
-		RAISERROR('La linea de producto no existe o no esta activa.',16,1);
+		RAISERROR('La linea de producto no existe o no se encuentra activa.',16,1);
 		RETURN;
 	END
 
@@ -906,11 +951,28 @@ BEGIN
 	WHERE descripcion = @descripcion;
 END;
 GO
+----------------------------------------------------------------------------------------------
+CREATE  PROCEDURE Inventario.ReactivarLineaProducto_sp
+	@descripcion VARCHAR(30)
+AS
+BEGIN
+    SET NOCOUNT ON;
 
+	IF NOT EXISTS (SELECT 1 FROM Inventario.LineaProducto WHERE descripcion = @descripcion AND activo = 0)
+	BEGIN
+		RAISERROR('La linea de producto no existe o ya se encuentra activa.',16,1);
+		RETURN;
+	END
+
+	UPDATE Inventario.LineaProducto
+	SET activo = 1
+	WHERE descripcion = @descripcion;
+END;
+GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Inventario.Producto	
-CREATE OR ALTER PROCEDURE Inventario.InsertarProducto_sp
+CREATE  PROCEDURE Inventario.InsertarProducto_sp
     @nombreProducto   NVARCHAR(100),
     @precioUnitario   DECIMAL(10,2),
     @lineaProducto    VARCHAR(30)
@@ -959,27 +1021,26 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Inventario.ActualizarProducto_sp
+CREATE  PROCEDURE Inventario.ActualizarProducto_sp
     @nombreProducto   NVARCHAR(100),
     @lineaProducto    VARCHAR(30) = NULL,
     @precioUnitario   DECIMAL(10,2) = NULL,
-    @nuevoNombreProd  NVARCHAR(100) = NULL,
-    @activo           BIT = NULL
+    @nuevoNombreProd  NVARCHAR(100) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
     DECLARE @idLinea INT
 
-    IF @lineaProducto IS NULL AND @precioUnitario IS NULL AND @nuevoNombreProd IS NULL AND @activo IS NULL
+    IF @lineaProducto IS NULL AND @precioUnitario IS NULL AND @nuevoNombreProd IS NULL
     BEGIN
         RAISERROR('Debe indicar al menos un cambio.', 16, 1);
 		RETURN;
     END
 
-    IF NOT EXISTS (SELECT 1 FROM Inventario.Producto WHERE nombreProducto = @nombreProducto)
+    IF NOT EXISTS (SELECT 1 FROM Inventario.Producto WHERE nombreProducto = @nombreProducto AND activo = 1)
     BEGIN
-		RAISERROR('El producto no existe.', 16, 1);
+		RAISERROR('El producto no existe o no se encuentra activo.', 16, 1);
 		RETURN;
 	END
     
@@ -995,12 +1056,6 @@ BEGIN
         RAISERROR('El nuevo precio unitario debe ser mayor a 0.', 16, 1);
      	RETURN;
 	END
-
-    IF @activo NOT IN (0,1)
-    BEGIN
-         RAISERROR('Activo solo puede tener los valores 0 y 1.', 16, 1);
-         RETURN;
-    END
 
     IF @nuevoNombreProd IS NOT NULL AND @nuevoNombreProd <> @nombreProducto
     BEGIN
@@ -1021,13 +1076,12 @@ BEGIN
     UPDATE Inventario.Producto
     SET nombreProducto  = ISNULL(@nuevoNombreProd, nombreProducto),
         idLineaProducto   = ISNULL(@idLinea,idLineaProducto), 
-        precioUnitario  = ISNULL(@precioUnitario, precioUnitario),
-        activo          = ISNULL(@activo, activo)
+        precioUnitario  = ISNULL(@precioUnitario, precioUnitario)
     WHERE nombreProducto = @nombreProducto;
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Inventario.EliminarProducto_sp
+CREATE  PROCEDURE Inventario.EliminarProducto_sp
     @nombreProducto   NVARCHAR(100)
 AS
 BEGIN
@@ -1035,7 +1089,7 @@ BEGIN
 
     IF NOT EXISTS (SELECT 1 FROM Inventario.Producto WHERE nombreProducto = @nombreProducto AND activo = 1)
 	BEGIN
-        RAISERROR('El producto no existe o no está activo.', 16, 1);
+        RAISERROR('El producto no existe o no se encuentra activo.', 16, 1);
 		RETURN;
 	END
       
@@ -1045,14 +1099,33 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
+CREATE  PROCEDURE Inventario.ReactivarProducto_sp
+    @nombreProducto   NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM Inventario.Producto WHERE nombreProducto = @nombreProducto AND activo = 0)
+	BEGIN
+        RAISERROR('El producto no existe o ya se encuentra activo.', 16, 1);
+		RETURN;
+	END
+      
+    UPDATE Inventario.Producto
+    SET activo = 1
+    WHERE nombreProducto = @nombreProducto;
+END;
+GO
+
+----------------------------------------------------------------------------------------------
 -- ABM Ventas.Cliente
-CREATE OR ALTER PROCEDURE Ventas.InsertarCliente_sp
-    @dni                CHAR(8),
+CREATE  PROCEDURE Ventas.InsertarCliente_sp
+    @dni                VARCHAR(25),
     @nombre				VARCHAR(30),
     @apellido			VARCHAR(30),
-    @genero				CHAR(1),
+    @genero				VARCHAR(25),
     @tipoCliente		VARCHAR(10),
-    @puntos             INT,
+    @puntos             INT = NULL,
     @fechaAlta          DATETIME = NULL
 AS
 BEGIN
@@ -1082,7 +1155,7 @@ BEGIN
         RETURN;
     END
 
-	IF Utilidades.ValidarGenero(@genero) = 0
+	IF UPPER(@genero) NOT IN ('M', 'F')
 	BEGIN
 		RAISERROR('El formato del género es inválido.',16,1)
 		RETURN;
@@ -1130,30 +1203,30 @@ BEGIN
 		@apellido,
         EncryptByKey(Key_GUID('LlaveSimetrica'), @dni),
         HASHBYTES('SHA2_256', @dni),
-        @genero,
+        UPPER(@genero),
 		@tipoCliente,
 		@puntos,
         ISNULL(@fechaAlta,GETDATE())
     );
+
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.ActualizarCliente_sp
-    @dni                CHAR(8),
+CREATE  PROCEDURE Ventas.ActualizarCliente_sp
+    @dni                VARCHAR(25),
     @nombre				VARCHAR(30) = NULL,
     @apellido			VARCHAR(30) = NULL,
-    @genero				CHAR(1) = NULL,
+    @genero				VARCHAR(25) = NULL,
     @tipoCliente		VARCHAR(10) = NULL,
     @puntos             INT = NULL,
-    @activo             BIT = NULL,
     @fechaAlta          DATETIME = NULL,
-    @nuevoDni           CHAR(8) = NULL
+    @nuevoDni           VARCHAR(25) = NULL
    
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF @nombre IS NULL AND @apellido IS NULL AND @genero IS NULL AND @tipoCliente IS NULL AND @puntos IS NULL AND @activo IS NULL AND @fechaAlta IS NULL AND @nuevoDni IS NULL
+    IF @nombre IS NULL AND @apellido IS NULL AND @genero IS NULL AND @tipoCliente IS NULL AND @puntos IS NULL AND @fechaAlta IS NULL AND @nuevoDni IS NULL
     BEGIN
         RAISERROR('Debe indicar al menos un cambio.', 16, 1);
 		RETURN;
@@ -1165,9 +1238,9 @@ BEGIN
 		RETURN;
 	END
 
-    IF NOT EXISTS (SELECT 1 FROM Ventas.Cliente WHERE dniHASH = HASHBYTES('SHA2_256', @dni))
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Cliente WHERE dniHASH = HASHBYTES('SHA2_256', @dni) AND activo = 1)
 	BEGIN
-        RAISERROR('El cliente no existe.', 16, 1);
+        RAISERROR('El cliente no existe o no se encuentra activo.', 16, 1);
 		RETURN;
 	END
 
@@ -1183,7 +1256,7 @@ BEGIN
         RETURN;
     END
 
-	IF Utilidades.ValidarGenero(@genero) = 0
+	IF UPPER(@genero) NOT IN ('M', 'F')
 	BEGIN
 		RAISERROR('El formato del género es inválido.',16,1)
 		RETURN;
@@ -1215,13 +1288,6 @@ BEGIN
     IF @tipoCliente = 'Miembro' AND @puntos IS NULL
         SET @puntos = 0
 
-    
-    IF @activo NOT IN (0,1)
-    BEGIN
-         RAISERROR('Activo solo puede tener los valores 0 y 1.', 16, 1);
-         RETURN;
-    END
-
     IF @nuevoDni IS NOT NULL AND @nuevoDni <> @dni
     BEGIN
         IF @nuevoDni NOT LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
@@ -1237,9 +1303,6 @@ BEGIN
 	    END 
     END
 
-            
-        
-
     UPDATE Ventas.Cliente
     SET nombre		= ISNULL(@nombre, nombre),
         apellido	= ISNULL(@apellido, apellido),
@@ -1248,14 +1311,13 @@ BEGIN
         genero		= ISNULL(@genero, genero),
         tipoCliente	= ISNULL(@tipoCliente, tipoCliente),
 		puntos      = ISNULL(@puntos, puntos),
-        fechaAlta   = ISNULL(@fechaAlta, fechaAlta),
-        activo      = ISNULL(@activo, activo)
+        fechaAlta   = ISNULL(@fechaAlta, fechaAlta)
     WHERE dniHASH = HASHBYTES('SHA2_256', @dni);
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.EliminarCliente_sp
-    @dni CHAR(8)
+CREATE  PROCEDURE Ventas.EliminarCliente_sp
+    @dni VARCHAR(25)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1268,7 +1330,7 @@ BEGIN
 
     IF NOT EXISTS (SELECT 1 FROM Ventas.Cliente WHERE dniHASH = HASHBYTES('SHA2_256', @dni) AND activo = 1)
 	BEGIN
-        RAISERROR('El cliente no existe o no está activo.', 16, 1);
+        RAISERROR('El cliente no existe o no se encuentra activo.', 16, 1);
 		RETURN;
 	END
 
@@ -1278,12 +1340,35 @@ BEGIN
     WHERE dniHASH = HASHBYTES('SHA2_256', @dni);
 END;
 GO
+----------------------------------------------------------------------------------------------
+CREATE  PROCEDURE Ventas.ReactivarCliente_sp
+    @dni VARCHAR(25)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    IF @dni NOT LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
+    BEGIN
+		RAISERROR('El formato del dni es inválido.',16,1)
+		RETURN;
+	END
 
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Cliente WHERE dniHASH = HASHBYTES('SHA2_256', @dni) AND activo = 0)
+	BEGIN
+        RAISERROR('El cliente no existe o ya se encuentra activo.', 16, 1);
+		RETURN;
+	END
+
+    -- Borrado lógico
+    UPDATE Ventas.Cliente
+    SET activo = 1
+    WHERE dniHASH = HASHBYTES('SHA2_256', @dni);
+END;
+GO
 ----------------------------------------------------------------------------------------------
 -- ABM Ventas.MedioPago
-CREATE OR ALTER PROCEDURE Ventas.InsertarMedioPago_sp
-    @nombre      VARCHAR(10),
-    @descripcion VARCHAR(20)
+CREATE  PROCEDURE Ventas.InsertarMedioPago_sp
+    @nombre      NVARCHAR(30)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1300,82 +1385,51 @@ BEGIN
 		RETURN;
 	END
 
-    IF LEN(LTRIM(RTRIM(@descripcion))) = 0
-    BEGIN
-         RAISERROR('La descripcion del medio de pago no puede estar vacía.', 16, 1);
-         RETURN;
-    END
-
-    INSERT INTO Ventas.MedioPago (nombre, descripcion)
-    VALUES (@nombre, @descripcion);
+    INSERT INTO Ventas.MedioPago (nombre)
+    VALUES (@nombre);
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.ActualizarMedioPago_sp
-    @nombre      VARCHAR(10),
-    @descripcion VARCHAR(20) = NULL,
-    @nuevoNombre VARCHAR(10) = NULL,
-    @activo      BIT = NULL
+CREATE  PROCEDURE Ventas.ActualizarMedioPago_sp
+    @nombre      NVARCHAR(30),
+    @nuevoNombre NVARCHAR(30)
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF @descripcion IS NULL AND @nuevoNombre IS NULL AND @activo IS NULL
-    BEGIN
-        RAISERROR('Debe indicar al menos un cambio.', 16, 1);
-		RETURN;
-    END
-
-    IF NOT EXISTS (SELECT 1 FROM Ventas.MedioPago WHERE nombre = @nombre)
+    IF NOT EXISTS (SELECT 1 FROM Ventas.MedioPago WHERE nombre = @nombre AND activo = 1)
 	BEGIN
-        RAISERROR('El medio de pago no existe.', 16, 1);
+        RAISERROR('El medio de pago no existe o no se encuentra activo.', 16, 1);
 		RETURN;
 	END
 
-    IF LEN(LTRIM(RTRIM(@descripcion))) = 0
+    IF LEN(LTRIM(RTRIM(@nuevoNombre))) = 0
     BEGIN
-         RAISERROR('La nueva descripcion del medio de pago no puede estar vacía.', 16, 1);
-         RETURN;
+        RAISERROR('El nuevo nombre del medio de pago no puede estar vacío.', 16, 1);
+        RETURN;
     END
 
-    IF @activo NOT IN (0,1)
+    IF EXISTS (SELECT 1 FROM Ventas.MedioPago WHERE nombre = @nuevoNombre)
     BEGIN
-         RAISERROR('Activo solo puede tener los valores 0 y 1.', 16, 1);
-         RETURN;
+        RAISERROR('El nuevo nombre del medio de pago ya está en uso.', 16, 1);
+        RETURN;
     END
-
-    IF @nuevoNombre IS NOT NULL AND @nuevoNombre <> @nombre
-    BEGIN
-        IF LEN(LTRIM(RTRIM(@nuevoNombre))) = 0
-        BEGIN
-            RAISERROR('El nuevo nombre del medio de pago no puede estar vacío.', 16, 1);
-            RETURN;
-        END
-
-        IF EXISTS (SELECT 1 FROM Ventas.MedioPago WHERE nombre = @nuevoNombre)
-        BEGIN
-            RAISERROR('El nuevo nombre del medio de pago ya está en uso.', 16, 1);
-            RETURN;
-        END
-    END
-
+    
     UPDATE Ventas.MedioPago
-    SET nombre      = ISNULL(@nuevoNombre, nombre),
-        descripcion = ISNULL(@descripcion, descripcion),
-        activo      = ISNULL(@activo, activo)
+    SET nombre   = @nuevoNombre
     WHERE nombre = @nombre;
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.EliminarMedioPago_sp
-	@nombre VARCHAR(10)
+CREATE  PROCEDURE Ventas.EliminarMedioPago_sp
+	@nombre NVARCHAR(30)
 AS
 BEGIN
     SET NOCOUNT ON;
 
 	IF NOT EXISTS (SELECT 1 FROM Ventas.MedioPago WHERE nombre = @nombre AND activo = 1)
 	BEGIN
-		RAISERROR('El medio de pago no existe o no esta activo.',16,1);
+		RAISERROR('El medio de pago no existe o no se encuentra activo.',16,1);
 		RETURN;
 	END
 
@@ -1384,18 +1438,36 @@ BEGIN
 	WHERE nombre = @nombre;
 END;
 GO
+----------------------------------------------------------------------------------------------
+CREATE  PROCEDURE Ventas.ReactivarMedioPago_sp
+	@nombre NVARCHAR(30)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+	IF NOT EXISTS (SELECT 1 FROM Ventas.MedioPago WHERE nombre = @nombre AND activo = 0)
+	BEGIN
+		RAISERROR('El medio de pago no existe o ya se encuentra activo.',16,1);
+		RETURN;
+	END
+
+	UPDATE Ventas.MedioPago
+	SET activo = 1
+	WHERE nombre = @nombre;
+END;
+GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Ventas.Factura
-CREATE OR ALTER PROCEDURE Ventas.InsertarFactura_sp
-    @codigoFactura		CHAR(11),
-	@tipoFactura		CHAR(1),
+CREATE  PROCEDURE Ventas.InsertarFactura_sp
+    @codigoFactura		VARCHAR(25),
+	@tipoFactura		VARCHAR(25),
     @fecha				DATETIME = NULL,
-    @medioPago			VARCHAR(20),
+    @medioPago			NVARCHAR(20),
     @detallesPago       VARCHAR(100) = NULL,
-	@cliente		    CHAR(8),
+	@cliente		    VARCHAR(25),
     @empleado			INT,
-    @sucursal			CHAR(3)
+    @sucursal			VARCHAR(25)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1493,17 +1565,16 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.ActualizarFactura_sp
-    @codigoFactura		CHAR(11),
-	@tipoFactura		CHAR(1) = NULL,
+CREATE  PROCEDURE Ventas.ActualizarFactura_sp
+    @codigoFactura		VARCHAR(25),
+	@tipoFactura		VARCHAR(25) = NULL,
     @fecha				DATETIME = NULL,
-    @medioPago			VARCHAR(20) = NULL,
+    @medioPago			NVARCHAR(20) = NULL,
     @detallesPago       VARCHAR(100) = NULL,
-	@cliente		    CHAR(8) = NULL,
+	@cliente		    VARCHAR(25) = NULL,
     @empleado			INT = NULL,
-    @sucursal			CHAR(3) = NULL,
-    @activo             BIT = NULL,
-    @nuevoCodigo        CHAR(11) = NULL
+    @sucursal			VARCHAR(25) = NULL,
+    @nuevoCodigo        VARCHAR(25) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1513,8 +1584,7 @@ BEGIN
             @idSucursal INT,
             @idEmpleado INT;
 
-    IF @tipoFactura IS NULL AND @fecha IS NULL AND @medioPago IS NULL AND @detallesPago IS NULL AND @cliente IS NULL AND @empleado IS NULL AND 
-    @sucursal IS NULL AND @activo IS NULL AND @nuevoCodigo IS NULL  
+    IF @tipoFactura IS NULL AND @fecha IS NULL AND @medioPago IS NULL AND @detallesPago IS NULL AND @cliente IS NULL AND @empleado IS NULL AND @sucursal IS NULL AND @nuevoCodigo IS NULL  
     BEGIN
 		RAISERROR('Debe indicar al menos un cambio.', 16, 1);
 		RETURN;
@@ -1526,9 +1596,9 @@ BEGIN
 		RETURN;
 	END
 
-    IF NOT EXISTS (SELECT 1 FROM Ventas.Factura WHERE codigoFactura = @codigoFactura)
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Factura WHERE codigoFactura = @codigoFactura AND activo = 1)
     BEGIN
-		RAISERROR('La factura no existe.',16,1);
+		RAISERROR('La factura no existe o no se encuentra activa.',16,1);
 		RETURN;
 	END
 
@@ -1584,12 +1654,6 @@ BEGIN
         RETURN;
     END
 
-    IF @activo NOT IN (0,1)
-    BEGIN
-         RAISERROR('Activo solo puede tener los valores 0 y 1.', 16, 1);
-         RETURN;
-    END
-
     IF @nuevoCodigo IS NOT NULL AND @nuevoCodigo <> @codigoFactura
     BEGIN
         IF @nuevoCodigo NOT LIKE ('[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]')
@@ -1615,14 +1679,13 @@ BEGIN
 		detallesPago      = ISNULL(@detallesPago, detallesPago),
         idCliente		  = ISNULL(@idCliente, idCliente),
         idEmpleado		  = ISNULL(@idEmpleado, idEmpleado),
-        idSucursal		  = ISNULL(@idSucursal, idSucursal),
-        @activo           = ISNULL(@activo, activo)
+        idSucursal		  = ISNULL(@idSucursal, idSucursal)
     WHERE codigoFactura = @codigoFactura;
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.EliminarFactura_sp
-    @codigoFactura CHAR(11)
+CREATE  PROCEDURE Ventas.EliminarFactura_sp
+    @codigoFactura VARCHAR(25)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1645,9 +1708,34 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
+CREATE  PROCEDURE Ventas.ReactivarFactura_sp
+    @codigoFactura VARCHAR(25)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @codigoFactura NOT LIKE ('[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]')
+	BEGIN
+		RAISERROR('El formato de codigo de factura es inválido.',16,1);
+		RETURN;
+	END
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Factura WHERE codigoFactura = @codigoFactura AND activo = 0)
+	BEGIN
+        RAISERROR('No existe la factura indicada o ya se encuentra activa.', 16, 1);
+    	RETURN;
+	END
+
+    UPDATE Ventas.Factura
+    SET activo = 1
+    WHERE codigoFactura = @codigoFactura;
+END;
+GO
+
+----------------------------------------------------------------------------------------------
 -- ABM Ventas.DetalleFactura
-CREATE OR ALTER PROCEDURE Ventas.InsertarDetalleFactura_sp
-    @codigoFactura  CHAR(11),
+CREATE  PROCEDURE Ventas.InsertarDetalleFactura_sp
+    @codigoFactura  VARCHAR(25),
     @producto       NVARCHAR(100),
     @cantidad       INT
 AS
@@ -1721,8 +1809,8 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.ActualizarDetalleFactura_sp
-    @codigoFactura  CHAR(11),
+CREATE  PROCEDURE Ventas.ActualizarDetalleFactura_sp
+    @codigoFactura  VARCHAR(25),
     @numDetalle     INT,
     @producto       NVARCHAR(100) = NULL,
     @precioUnitario DECIMAL(10,2) = NULL,
@@ -1820,9 +1908,9 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.EliminarDetalleFactura_sp
-    @codigoFactura  CHAR(11),
-    @numDetalle  INT
+CREATE  PROCEDURE Ventas.EliminarDetalleFactura_sp
+    @codigoFactura  VARCHAR(25),
+    @numDetalle     INT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1861,10 +1949,10 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Ventas.NotaCredito
-CREATE OR ALTER PROCEDURE Ventas.InsertarNotaCredito_sp
-    @codigoNota     CHAR(14),
-    @codigoFactura  CHAR(11),
-	@cliente        CHAR(8),
+CREATE  PROCEDURE Ventas.InsertarNotaCredito_sp
+    @codigoNota     VARCHAR(25),
+    @codigoFactura  VARCHAR(25),
+	@cliente        VARCHAR(25),
     @empleado       INT,
     @fecha		    DATETIME = NULL,
     @detalles	    NVARCHAR(200)
@@ -1958,14 +2046,13 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.ActualizarNotaCredito_sp
-    @codigoNota     CHAR(14),
-	@cliente        CHAR(8) = NULL,
+CREATE  PROCEDURE Ventas.ActualizarNotaCredito_sp
+    @codigoNota     VARCHAR(25),
+	@cliente        VARCHAR(25) = NULL,
     @empleado       INT = NULL,
     @fecha		    DATETIME = NULL,
     @detalles	    NVARCHAR(200) = NULL,
-    @activo         BIT = NULL,
-    @nuevoCodigo    CHAR(14) = NULL
+    @nuevoCodigo    VARCHAR(25) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1974,7 +2061,7 @@ BEGIN
             @idCliente  INT,
             @idEmpleado INT;
 
-    IF @cliente IS NULL AND @empleado IS NULL AND @fecha IS NULL AND @detalles IS NULL AND @activo IS NULL AND @nuevoCodigo IS NULL
+    IF @cliente IS NULL AND @empleado IS NULL AND @fecha IS NULL AND @detalles IS NULL AND @nuevoCodigo IS NULL
     BEGIN
 		RAISERROR('Debe indicar al menos un cambio.', 16, 1);
 		RETURN;
@@ -1986,9 +2073,9 @@ BEGIN
 		RETURN;
 	END
 
-    IF NOT EXISTS (SELECT 1 FROM Ventas.NotaCredito WHERE codigoNota = @codigoNota)
+    IF NOT EXISTS (SELECT 1 FROM Ventas.NotaCredito WHERE codigoNota = @codigoNota AND activo = 1)
     BEGIN
-		RAISERROR('La nota de crédito no existe.',16,1);
+		RAISERROR('La nota de crédito no existe o no se encuentra activa.',16,1);
 		RETURN;
 	END
     
@@ -1999,7 +2086,7 @@ BEGIN
 	END
 
     SET @idCliente = (SELECT idCliente FROM Ventas.Cliente WHERE dniHASH = HASHBYTES('SHA2_256', @cliente) AND activo = 1)
-    IF @idCliente IS NULL AND @cliente IS NULL
+    IF @idCliente IS NULL AND @cliente IS NOT NULL
     BEGIN
 	    RAISERROR('El nuevo cliente no existe o no se enecuentra activo.', 16, 1);
         RETURN;
@@ -2015,12 +2102,6 @@ BEGIN
     BEGIN
         RAISERROR('El nuevo detalle de la nota de crédito no puede estar vacio.', 16, 1);
         RETURN;
-    END
-
-    IF @activo NOT IN (0,1)
-    BEGIN
-         RAISERROR('Activo solo puede tener los valores 0 y 1.', 16, 1);
-         RETURN;
     END
 
     IF @nuevoCodigo IS NOT NULL AND @nuevoCodigo <> @codigoNota
@@ -2042,14 +2123,13 @@ BEGIN
     SET codigoNota	      = ISNULL(@nuevoCodigo, codigoNota),
 		idCliente		  = ISNULL(@idCliente, idCliente),
         fecha			  = ISNULL(@fecha, fecha),
-        detalles          = ISNULL(@detalles, detalles),
-        @activo           = ISNULL(@activo, activo)
+        detalles          = ISNULL(@detalles, detalles)
     WHERE codigoNota = @codigoNota;
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.EliminarNotaCredito_sp
-    @codigoNota  CHAR(14)
+CREATE  PROCEDURE Ventas.EliminarNotaCredito_sp
+    @codigoNota  VARCHAR(25)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2071,10 +2151,36 @@ BEGIN
     WHERE codigoNota = @codigoNota;
 END;
 GO
+
+----------------------------------------------------------------------------------------------
+CREATE  PROCEDURE Ventas.ReactivarNotaCredito_sp
+    @codigoNota  VARCHAR(25)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @codigoNota NOT LIKE ('NC-2[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]')
+	BEGIN
+	    RAISERROR('El formato del nuevo codigo de nota de crédito es inválido (NC-2YYY-000000).',16,1);
+	    RETURN;
+	END
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.NotaCredito WHERE codigoNota = @codigoNota AND activo = 0)
+	BEGIN
+        RAISERROR('No existe la nota de crédito indicada o ya se encuentra activa.', 16, 1);
+    	RETURN;
+	END
+
+    UPDATE Ventas.NotaCredito
+    SET activo = 1
+    WHERE codigoNota = @codigoNota;
+END;
+GO
+
 ----------------------------------------------------------------------------------------------
 -- ABN Ventas.DetalleNota
-CREATE OR ALTER PROCEDURE Ventas.InsertarDetalleNota_sp
-    @codigoNota     CHAR(14),
+CREATE  PROCEDURE Ventas.InsertarDetalleNota_sp
+    @codigoNota     VARCHAR(25),
     @producto       NVARCHAR(100),
     @cantidad       INT
 AS
@@ -2096,7 +2202,7 @@ BEGIN
 	    RETURN;
 	END
 
-    SET @idNota = (SELECT 1 FROM Ventas.NotaCredito WHERE codigoNota = @codigoNota AND activo = 1)
+    SET @idNota = (SELECT idNota FROM Ventas.NotaCredito WHERE codigoNota = @codigoNota AND activo = 1)
     IF @idNota IS NULL
 	BEGIN
         RAISERROR('No existe la nota de crédito indicada o no se encuentra activa.', 16, 1);
@@ -2118,7 +2224,7 @@ BEGIN
     	RETURN;
     END
 
-    SET @idDetalleFactura = (SELECT 1 FROM Ventas.DetalleFactura WHERE idFactura = @idFactura AND idProducto = @idProducto)
+    SET @idDetalleFactura = (SELECT idDetalleFactura FROM Ventas.DetalleFactura WHERE idFactura = @idFactura AND idProducto = @idProducto)
     IF @idDetalleFactura IS NULL
     BEGIN
         RAISERROR('El producto no está en la factura.', 16, 1);
@@ -2126,10 +2232,11 @@ BEGIN
 	END
 
     -- Recuperamos precioUnitario y cantidad del detalle de la factura
-    SET @precioUnitario = (SELECT @precioUnitario FROM Ventas.DetalleFactura WHERE idFactura = @idFactura AND idDetalleFactura = @idDetalleFactura)
+    SET @precioUnitario = (SELECT precioUnitario FROM Ventas.DetalleFactura WHERE idFactura = @idFactura AND idDetalleFactura = @idDetalleFactura)
     SET @cantidadTotal = (SELECT cantidad FROM Ventas.DetalleFactura WHERE idFactura = @idFactura AND idDetalleFactura = @idDetalleFactura)
 
-    SET @cantidadDevuelta = (SELECT SUM(cantidad) FROM Ventas.DetalleNota WHERE idNota = @idNota AND idProducto = @idProducto)
+    SET @cantidadDevuelta = ( SELECT SUM(cantidad) FROM Ventas.DetalleNota D JOIN Ventas.NotaCredito N ON D.idNota = N.idNota
+							  WHERE N.idFactura = @idFactura AND idProducto = @idProducto)
 
     IF @cantidad > @cantidadTotal
     BEGIN
@@ -2176,8 +2283,8 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.ActualizarDetalleNota_sp
-    @codigoNota     CHAR(14),
+CREATE  PROCEDURE Ventas.ActualizarDetalleNota_sp
+    @codigoNota     VARCHAR(25),
     @numDetalle		INT,
     @producto       NVARCHAR(100) = NULL,
     @cantidad       INT = NULL
@@ -2223,7 +2330,11 @@ BEGIN
 
     SET @idFactura = (SELECT idFactura FROM Ventas.NotaCredito WHERE idNota =  @idNota)
 
-    SET @idProducto = (SELECT idProducto FROM Inventario.Producto WHERE nombreProducto = @producto)
+    IF @producto IS NULL
+        SET @idProducto = (SELECT idProducto FROM Ventas.DetalleNota WHERE idNota = @idNota AND idDetalleNota = @numDetalle)
+    ELSE
+        SET @idProducto = (SELECT idProducto FROM Inventario.Producto WHERE nombreProducto = @producto)
+    
     IF @idProducto IS NULL AND @producto IS NOT NULL 
 	BEGIN
         RAISERROR('El producto no existe.', 16, 1);
@@ -2253,17 +2364,18 @@ BEGIN
 	SET @cantidadTotal = (SELECT cantidad FROM Ventas.DetalleFactura WHERE idFactura = @idFactura AND idDetalleFactura = @idDetalleFactura)
 
 	-- Precio unitario previo a modificar
-    SET @precioUnitario = (SELECT @precioUnitario FROM Ventas.DetalleNota WHERE idNota = @idNota AND idDetalleNota = @numDetalle)
+    SET @precioUnitario = (SELECT precioUnitario FROM Ventas.DetalleNota WHERE idNota = @idNota AND idDetalleNota = @numDetalle)
     
 	-- Monto total de la nota de crédito sin contar el detalle actual actualizado
     SET @montoSinDetalle = (SELECT monto FROM Ventas.NotaCredito WHERE idNota = @idNota) - @precioUnitario * (SELECT cantidad FROM Ventas.DetalleNota WHERE idNota = @idNota AND idDetalleNota = @numDetalle)
 
     -- Actualizamos precioUnitario si se actualiza el producto
     IF @producto IS NOT NULL
-        SET @precioUnitario = (SELECT @precioUnitario FROM Ventas.DetalleFactura WHERE idFactura = @idFactura AND idDetalleFactura = @idDetalleFactura)
+        SET @precioUnitario = (SELECT precioUnitario FROM Ventas.DetalleFactura WHERE idFactura = @idFactura AND idDetalleFactura = @idDetalleFactura)
     
 	-- Cantidad devuelta acumulada del producto en todas las notas de crédito de la factura
-    SET @cantidadDevuelta = (SELECT SUM(cantidad) FROM Ventas.DetalleNota WHERE idNota = @idNota AND idProducto = @idProducto)
+    SET @cantidadDevuelta = ( SELECT SUM(cantidad) FROM Ventas.DetalleNota D JOIN Ventas.NotaCredito N ON D.idNota = N.idNota
+							  WHERE N.idFactura = @idFactura AND idProducto = @idProducto)
 
     IF @cantidad > @cantidadTotal
     BEGIN
@@ -2293,8 +2405,8 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE Ventas.EliminarDetalleNota_sp
-    @codigoNota     CHAR(14),
+CREATE  PROCEDURE Ventas.EliminarDetalleNota_sp
+    @codigoNota     VARCHAR(25),
     @numeroDetalle  INT
 AS
 BEGIN
@@ -2337,24 +2449,24 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- Vacia todas las tablas y resetea los autoincrementales identity
-CREATE OR ALTER PROCEDURE Utilidades.ResetearTablas_sp
+CREATE  PROCEDURE Utilidades.ResetearTablas_sp
 AS
 BEGIN
     SET NOCOUNT ON;
 
 	-- Vaciar tablas
+    DELETE FROM Ventas.DetalleFactura;
+    DELETE FROM Ventas.Factura;
+    DELETE FROM Ventas.DetalleNota;
+    DELETE FROM Ventas.NotaCredito;
+    DELETE FROM Ventas.MedioPago;
+    DELETE FROM Ventas.Cliente;
+    DELETE FROM Empresa.Empleado;
     DELETE FROM Empresa.Cargo;
     DELETE FROM Empresa.Turno;
     DELETE FROM Empresa.Sucursal;
-    DELETE FROM Empresa.Empleado;
     DELETE FROM Inventario.Producto;
     DELETE FROM Inventario.LineaProducto;
-    DELETE FROM Ventas.Cliente;
-    DELETE FROM Ventas.MedioPago;
-    DELETE FROM Ventas.DetalleFactura;
-    DELETE FROM Ventas.DetalleNota;
-    DELETE FROM Ventas.Factura;
-    DELETE FROM Ventas.NotaCredito;
     
     -- Resetear los contadores de IDENTITY
     DBCC CHECKIDENT ('Ventas.Factura', RESEED, 0);

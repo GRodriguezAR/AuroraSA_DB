@@ -4,3 +4,7 @@ E:\Proyectos\AuroraSA-DB\bin\Debug\AuroraSA_DB.pdb
 E:\Proyectos\AuroraSA-DB\obj\Debug\AuroraSA-DB.sqlproj.AssemblyReference.cache
 E:\Proyectos\AuroraSA-DB\obj\Debug\AuroraSA_DB.dll
 E:\Proyectos\AuroraSA-DB\obj\Debug\AuroraSA_DB.pdb
+E:\Proyectos\AuroraSA-DB\obj\Debug\Model.xml
+E:\Proyectos\AuroraSA-DB\obj\Debug\refactor.xml
+E:\Proyectos\AuroraSA-DB\obj\Debug\postdeploy.sql
+E:\Proyectos\AuroraSA-DB\obj\Debug\predeploy.sql

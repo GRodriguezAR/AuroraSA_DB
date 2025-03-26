@@ -3,16 +3,48 @@
   "WorkspaceRootPath": "E:\\Proyectos\\AuroraSA-DB\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|E:\\Proyectos\\AuroraSA-DB\\scripts\\00_CreacionDB.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
+      "RelativeMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|solutionrelative:scripts\\00_CreacionDB.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|E:\\Proyectos\\AuroraSA-DB\\scripts\\02_ProceduresABM.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
       "RelativeMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|solutionrelative:scripts\\02_ProceduresABM.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|E:\\Proyectos\\AuroraSA-DB\\tests\\test00_EmpresaABM.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
+      "RelativeMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|solutionrelative:tests\\test00_EmpresaABM.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|E:\\Proyectos\\AuroraSA-DB\\scripts\\03_ProceduresImportacion.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
+      "RelativeMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|solutionrelative:scripts\\03_ProceduresImportacion.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\Proyectos\\AuroraSA-DB\\MasterScript.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:MasterScript.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|E:\\Proyectos\\AuroraSA-DB\\scripts\\01_CreacionObjetos.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
       "RelativeMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|solutionrelative:scripts\\01_CreacionObjetos.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\Proyectos\\AuroraSA-DB\\MasterScript.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:MasterScript.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|E:\\Proyectos\\AuroraSA-DB\\scripts\\03_ProceduresImportacion.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
+      "RelativeMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|solutionrelative:scripts\\03_ProceduresImportacion.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|E:\\Proyectos\\AuroraSA-DB\\scripts\\00_CreacionDB.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
+      "RelativeMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|solutionrelative:scripts\\00_CreacionDB.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|E:\\Proyectos\\AuroraSA-DB\\scripts\\01_CreacionObjetos.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
       "RelativeMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|solutionrelative:scripts\\01_CreacionObjetos.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|E:\\Proyectos\\AuroraSA-DB\\tests\\test00_EmpresaABM.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
+      "RelativeMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|solutionrelative:tests\\test00_EmpresaABM.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
     },
     {
       "AbsoluteMoniker": "D:0:0:{58A15759-B24C-4C60-8284-41CD05CE4581}|AuroraSA-DB.sqlproj|E:\\Proyectos\\AuroraSA-DB\\scripts\\02_ProceduresABM.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
@@ -26,30 +58,77 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "02_ProceduresABM.sql ",
-              "DocumentMoniker": "E:\\Proyectos\\AuroraSA-DB\\scripts\\02_ProceduresABM.sql",
-              "RelativeDocumentMoniker": "scripts\\02_ProceduresABM.sql",
-              "ToolTip": "E:\\Proyectos\\AuroraSA-DB\\scripts\\02_ProceduresABM.sql*",
-              "RelativeToolTip": "scripts\\02_ProceduresABM.sql*",
+              "DocumentIndex": 4,
+              "Title": "MasterScript.sql ",
+              "DocumentMoniker": "E:\\Proyectos\\AuroraSA-DB\\MasterScript.sql",
+              "RelativeDocumentMoniker": "MasterScript.sql",
+              "ToolTip": "MasterScript.sql ",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
-              "WhenOpened": "2025-03-17T16:01:08.209Z",
+              "WhenOpened": "2025-03-22T22:46:59.242Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "03_ProceduresImportacion.sql ",
+              "DocumentMoniker": "E:\\Proyectos\\AuroraSA-DB\\scripts\\03_ProceduresImportacion.sql",
+              "RelativeDocumentMoniker": "scripts\\03_ProceduresImportacion.sql",
+              "ToolTip": "E:\\Proyectos\\AuroraSA-DB\\scripts\\03_ProceduresImportacion.sql",
+              "RelativeToolTip": "scripts\\03_ProceduresImportacion.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-03-22T20:02:26.194Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "00_CreacionDB.sql ",
+              "DocumentMoniker": "E:\\Proyectos\\AuroraSA-DB\\scripts\\00_CreacionDB.sql",
+              "RelativeDocumentMoniker": "scripts\\00_CreacionDB.sql",
+              "ToolTip": "E:\\Proyectos\\AuroraSA-DB\\scripts\\00_CreacionDB.sql",
+              "RelativeToolTip": "scripts\\00_CreacionDB.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-03-22T14:58:44.436Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "01_CreacionObjetos.sql ",
+              "DocumentMoniker": "E:\\Proyectos\\AuroraSA-DB\\scripts\\01_CreacionObjetos.sql",
+              "RelativeDocumentMoniker": "scripts\\01_CreacionObjetos.sql",
+              "ToolTip": "E:\\Proyectos\\AuroraSA-DB\\scripts\\01_CreacionObjetos.sql",
+              "RelativeToolTip": "scripts\\01_CreacionObjetos.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-03-17T15:58:34.475Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "test00_EmpresaABM.sql ",
+              "DocumentMoniker": "E:\\Proyectos\\AuroraSA-DB\\tests\\test00_EmpresaABM.sql",
+              "RelativeDocumentMoniker": "tests\\test00_EmpresaABM.sql",
+              "ToolTip": "E:\\Proyectos\\AuroraSA-DB\\tests\\test00_EmpresaABM.sql",
+              "RelativeToolTip": "tests\\test00_EmpresaABM.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-03-22T17:24:39.552Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "01_CreacionObjetos.sql ",
-              "DocumentMoniker": "E:\\Proyectos\\AuroraSA-DB\\scripts\\01_CreacionObjetos.sql",
-              "RelativeDocumentMoniker": "scripts\\01_CreacionObjetos.sql",
-              "ToolTip": "E:\\Proyectos\\AuroraSA-DB\\scripts\\01_CreacionObjetos.sql*",
-              "RelativeToolTip": "scripts\\01_CreacionObjetos.sql*",
+              "Title": "02_ProceduresABM.sql ",
+              "DocumentMoniker": "E:\\Proyectos\\AuroraSA-DB\\scripts\\02_ProceduresABM.sql",
+              "RelativeDocumentMoniker": "scripts\\02_ProceduresABM.sql",
+              "ToolTip": "E:\\Proyectos\\AuroraSA-DB\\scripts\\02_ProceduresABM.sql",
+              "RelativeToolTip": "scripts\\02_ProceduresABM.sql",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
-              "WhenOpened": "2025-03-17T15:58:34.475Z",
+              "WhenOpened": "2025-03-17T16:01:08.209Z",
               "EditorCaption": ""
             }
           ]

@@ -67,9 +67,12 @@
     <None Include="docs\Manual de administración.docx" />
     <None Include="docs\SRS.docx" />
     <None Include="README.md" />
-    <None Include="scripts\00_CreacionDB.sql" />
-    <None Include="scripts\01_CreacionObjetos.sql" />
-    <None Include="scripts\02_ProceduresABM.sql" />
-    <None Include="scripts\03_ProceduresImportacion.sql" />
+    <PreDeploy Include="scripts\00_CreacionDB.sql" />
+    <Build Include="scripts\01_CreacionObjetos.sql" />
+    <Build Include="scripts\02_ProceduresABM.sql" />
+    <Build Include="scripts\03_ProceduresImportacion.sql" />
+    <None Include="tests\test00_ABM-Empresa.sql" />
+    <None Include="tests\test01_ABM-Inventario.sql" />
+    <None Include="tests\test02_ABM-Ventas.sql" />
   </ItemGroup>
 </Project>

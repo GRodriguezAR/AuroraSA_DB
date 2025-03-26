@@ -5,54 +5,35 @@ GRodriguezAR
 */
 
 ------------CREACION DE DATABASE----------
-USE master
+USE [master]
 GO
 
 IF NOT EXISTS (SELECT NAME FROM master.dbo.sysdatabases WHERE NAME = 'AuroraSA_DB')
-    CREATE DATABASE AuroraSA-DB COLLATE Modern_Spanish_CS_AS
-ELSE
-	print 'La base de datos ya existe.'
+    CREATE DATABASE AuroraSA_DB COLLATE Modern_Spanish_CS_AS
 GO
 
-USE AuroraSA_DB
+USE [AuroraSA_DB]
 GO
 
 ------------CREACION DE ESQUEMAS----------
-IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Empresa')
-    EXEC('CREATE SCHEMA Empresa')
-ELSE
-    print 'El esquema Empresa ya existe en la base de datos.'
-GO
+--IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Empresa')
+--    EXEC('CREATE SCHEMA Empresa')
 
-IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'Ventas')
-    EXEC('CREATE SCHEMA Ventas')
-ELSE
-    print 'El esquema Ventas ya existe en la base de datos.'
-GO
+--IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'Ventas')
+--    EXEC('CREATE SCHEMA Ventas')
 
-IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Inventario')
-    EXEC('CREATE SCHEMA Inventario')
-ELSE 
-    print 'El esquema Inventario ya existe en la base de datos.'
-GO
+--IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Inventario')
+--    EXEC('CREATE SCHEMA Inventario')
 
-IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Utilidades')
-    EXEC('CREATE SCHEMA Utilidades')
-ELSE 
-    print 'El esquema Utilidades ya existe en la base de datos.'
-GO
+--IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Utilidades')
+--    EXEC('CREATE SCHEMA Utilidades')
 
-IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Reportes')
-    EXEC('CREATE SCHEMA Reportes')
-ELSE
-    print 'El esquema Reportes ya existe en la base de datos.'
-GO
+--IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Reportes')
+--    EXEC('CREATE SCHEMA Reportes')
 
-IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Seguridad')
-    EXEC('CREATE SCHEMA Seguridad')
-ELSE
-    print 'El esquema Seguridad ya existe en la base de datos.'
-GO
+--IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Seguridad')
+--    EXEC('CREATE SCHEMA Seguridad')
+--GO
 
 ---------- Encriptación ----------
 BEGIN TRY
@@ -101,3 +82,17 @@ BEGIN CATCH
         ERROR_MESSAGE() AS ErrorMessage;
     THROW; 
 END CATCH;
+GO
+
+-- CAMBIAR PARÁMETROS PARA PERMITIR IMPORTACIÓN
+EXEC sp_configure 'show advanced options', 1;
+GO
+RECONFIGURE;
+GO
+EXEC sp_configure 'Ad Hoc Distributed Queries', 1;
+GO
+RECONFIGURE;
+EXEC sp_MSset_oledb_prop 'Microsoft.ACE.OLEDB.12.0', 'AllowInProcess', 1;
+GO
+EXEC sp_MSset_oledb_prop 'Microsoft.ACE.OLEDB.12.0', 'DynamicParameters', 1;
+GO

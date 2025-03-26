@@ -1,16 +1,26 @@
 ﻿/*
 Aurora SA
-Script de creacion de tablas e índices.
+Script de creacion de esquemas, tablas e índices.
 GRodriguezAR
 */
 
-USE [AuroraSA_DB]
+-----------CREACION DE ESQUEMAS------------
+CREATE SCHEMA Empresa;
 GO
+CREATE SCHEMA Ventas;
+GO
+CREATE SCHEMA Inventario;
+GO
+CREATE SCHEMA Utilidades;
+GO
+CREATE SCHEMA Reportes;
+GO
+CREATE SCHEMA Seguridad;
+GO
+
 
 -----------CREACION DE TABLAS------------
 -- Empresa.Sucursal
-IF NOT EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Empresa' AND TABLE_NAME ='Sucursal')
 CREATE TABLE Empresa.Sucursal
 (
     idSucursal INT IDENTITY(1,1),
@@ -29,10 +39,7 @@ CREATE TABLE Empresa.Sucursal
     CONSTRAINT CHK_Sucursal_horario CHECK (LEN(LTRIM(RTRIM(horario))) > 0)
 );
 GO
-
 -- Empresa.Cargo
-IF NOT EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Empresa' AND TABLE_NAME ='Cargo')
 CREATE TABLE Empresa.Cargo
 (
     idCargo INT IDENTITY(1,1),
@@ -45,27 +52,21 @@ CREATE TABLE Empresa.Cargo
     CONSTRAINT CHK_Cargo_descripcion CHECK (LEN(LTRIM(RTRIM(descripcion))) > 0)
 );
 GO
-
-
 -- Empresa.Turno
-IF NOT EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Empresa' AND TABLE_NAME ='Turno')
 CREATE TABLE Empresa.Turno
 (
     idTurno INT IDENTITY(1,1),
     acronimo CHAR(2) NOT NULL,
-    descripcion VARCHAR(25) NOT NULL,
+    descripcion NVARCHAR(25) NOT NULL,
     activo BIT DEFAULT 1 NOT NULL ,
     CONSTRAINT PK_Turno PRIMARY KEY (idTurno),
     CONSTRAINT UQ_Turno_acronimo UNIQUE (acronimo),
     CONSTRAINT CHK_Turno_acronimo CHECK (acronimo LIKE '[A-Z][A-Z]'),
     CONSTRAINT CHK_Turno_descripcion CHECK (LEN(LTRIM(RTRIM(descripcion))) > 0)
 );
-
+GO
 
 -- Empresa.Empleado
-IF NOT EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Empresa' AND TABLE_NAME ='Empleado')
 CREATE TABLE Empresa.Empleado
 (
     idEmpleado INT IDENTITY,
@@ -95,10 +96,7 @@ CREATE TABLE Empresa.Empleado
 );
 GO
 
-
 -- Inventario.LineaProducto
-IF NOT EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Inventario' AND TABLE_NAME ='LineaProducto')
 CREATE TABLE Inventario.LineaProducto
 (
 	idLineaProd INT IDENTITY(1,1),
@@ -111,12 +109,10 @@ CREATE TABLE Inventario.LineaProducto
 GO
 
 -- Inventario.Producto
-IF NOT EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Inventario' AND TABLE_NAME ='Producto')
 CREATE TABLE Inventario.Producto
 (
     idProducto INT IDENTITY(1,1),
-    nombreProducto NVARCHAR(100) COLLATE Modern_Spanish_CI_AI NOT NULL,
+    r NVARCHAR(100) COLLATE Modern_Spanish_CI_AI NOT NULL,
     precioUnitario DECIMAL(10,2) NOT NULL,
     idLineaProducto INT NOT NULL,
     activo BIT DEFAULT 1 NOT NULL,   
@@ -128,10 +124,7 @@ CREATE TABLE Inventario.Producto
 );
 GO
 
-
 -- Ventas.Cliente
-IF NOT EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Ventas' AND TABLE_NAME ='Cliente')
 CREATE TABLE Ventas.Cliente
 (
     idCliente INT IDENTITY(1,1),
@@ -152,26 +145,19 @@ CREATE TABLE Ventas.Cliente
 );
 GO
 
-
 -- Ventas.MedioPago
-IF NOT EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Ventas' AND TABLE_NAME ='MedioPago')
 CREATE TABLE Ventas.MedioPago
 (
     idMedio INT IDENTITY(1,1),
-    nombre VARCHAR(10) NOT NULL,
-    descripcion VARCHAR(20) NOT NULL,
+    nombre NVARCHAR(30) NOT NULL,
     activo BIT NOT NULL DEFAULT 1,
     CONSTRAINT PK_MedioPago PRIMARY KEY (idMedio),
     CONSTRAINT UQ_MedioPago_nombre UNIQUE (nombre),
-    CONSTRAINT CHK_MedioPago_nombre CHECK (LEN(LTRIM(RTRIM(nombre))) > 0),
-    CONSTRAINT CHK_MedioPago_descripcion CHECK (LEN(LTRIM(RTRIM(descripcion))) > 0)
+    CONSTRAINT CHK_MedioPago_nombre CHECK (LEN(LTRIM(RTRIM(nombre))) > 0)
 );
-
+GO
 
 -- Ventas.Factura
-IF NOT EXISTS ( SELECT * FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Ventas' AND TABLE_NAME ='Factura')
 CREATE TABLE Ventas.Factura
 (
     idFactura INT IDENTITY(1,1) NOT NULL, 
@@ -198,8 +184,6 @@ CREATE TABLE Ventas.Factura
 GO
 
 -- Ventas.DetalleFactura
-IF NOT EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Ventas' AND TABLE_NAME ='DetalleFactura')
 CREATE TABLE Ventas.DetalleFactura
 (
     idFactura INT,
@@ -218,8 +202,6 @@ CREATE TABLE Ventas.DetalleFactura
 GO
 
 -- Ventas.NotaCredito
-IF NOT EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Ventas' AND TABLE_NAME ='NotaCredito')
 CREATE TABLE Ventas.NotaCredito
 (
 	idNota INT IDENTITY (1,1),
@@ -237,15 +219,12 @@ CREATE TABLE Ventas.NotaCredito
 	CONSTRAINT FK_NotaCredito_Empleado FOREIGN KEY (idEmpleado) REFERENCES Empresa.Empleado(idEmpleado),
     CONSTRAINT CHK_NotaCredito_codigoNota CHECK (codigoNota LIKE 'NC-2[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]'),
     CONSTRAINT UQ_NotaCredito_codigoNota UNIQUE (codigoNota),
-    CONSTRAINT CHK_NotaCredito_monto CHECK (monto > 0),
+    CONSTRAINT CHK_NotaCredito_monto CHECK (monto >= 0),
     CONSTRAINT CHK_NotaCredito_detalles CHECK (LEN(LTRIM(RTRIM(detalles))) > 0)
  );
  GO
 
-
  -- Ventas.DetalleNota
-IF NOT EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_SCHEMA ='Ventas' AND TABLE_NAME ='DetalleNota')
 CREATE TABLE Ventas.DetalleNota
 (
     idNota INT,
@@ -264,93 +243,44 @@ CREATE TABLE Ventas.DetalleNota
 GO
 
 
-
 -------------------------- CREACION DE INDICES --------------------------
 
 -- Indice codigo de Sucursal
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_codSucursal_Sucursal'  AND object_id = OBJECT_ID('Empresa.Sucursal')
-)
     CREATE UNIQUE NONCLUSTERED INDEX ix_codSucursal_Sucursal ON Empresa.Sucursal(codigoSucursal)
-
+    GO
 -- Indice acronimo de Turno
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_acronimo_Turno'  AND object_id = OBJECT_ID('Empresa.Turno')
-)
     CREATE UNIQUE NONCLUSTERED INDEX ix_acronimo_Turno ON Empresa.Turno(acronimo)
-
+    GO
 -- Indice nombre de Cargo
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_nombre_Cargo'  AND object_id = OBJECT_ID('Empresa.Cargo')
-)
     CREATE UNIQUE NONCLUSTERED INDEX ix_nombre_Cargo ON Empresa.Cargo(nombre)
-
+    GO
 -- Indice legajo de Empleado
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_legajo_Empleado' AND object_id = OBJECT_ID('Empresa.Empleado')
-)
     CREATE UNIQUE NONCLUSTERED INDEX ix_legajo_Empleado ON Empresa.Empleado(legajo)
-
+    GO
 -- Indice cuilHASH de Empleado
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_cuilHASH_Empleado' AND object_id = OBJECT_ID('Empresa.Empleado')
-)
     CREATE UNIQUE NONCLUSTERED INDEX ix_cuilHASH_Empleado ON Empresa.Empleado (cuilHASH) WITH (DATA_COMPRESSION = PAGE); 
-
+    GO
 -- Indice descripcion de LineaProducto
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_descripcion_LineaProducto' AND object_id = OBJECT_ID('Inventario.LineaProducto')
-)
     CREATE UNIQUE NONCLUSTERED INDEX ix_descripcion_LineaProducto ON Inventario.LineaProducto(descripcion)
-
+    GO
 -- Indice nombreProducto de Prodcuto
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_nombreProd_Producto' AND object_id = OBJECT_ID('Inventario.Producto')
-)
     CREATE UNIQUE NONCLUSTERED INDEX ix_nombreProd_Producto ON Inventario.Producto(nombreProducto)
-
+    GO
 -- Indice idLineaProducto de Prodcuto
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_idLineaProducto_Producto' AND object_id = OBJECT_ID('Inventario.Producto')
-)
     CREATE NONCLUSTERED INDEX ix_idLineaProducto_Producto ON Inventario.Producto(idLineaProducto)
-
+    GO
 -- Indice dniHASH de Empleado
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_dniHASH_Cliente' AND object_id = OBJECT_ID('Ventas.Cliente')
-)
     CREATE UNIQUE NONCLUSTERED INDEX ix_dniHASH_Cliente ON Ventas.Cliente (dniHASH)
-
+    GO
 -- Indice nombre de MedioPago
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_nombre_MedioPago' AND object_id = OBJECT_ID('Ventas.MedioPago')
-)
     CREATE NONCLUSTERED INDEX ix_nombre_MedioPago ON Ventas.MedioPago(nombre)
-
+    GO
 -- Indice codigoFactura en Factura
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_codFactura_Factura' AND object_id = OBJECT_ID('Ventas.Factura')
-)
     CREATE NONCLUSTERED INDEX ix_codFactura_Factura ON Ventas.Factura(codigoFactura)
-
+    GO
 -- Indice codigoNota en NotaCredito
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ix_codigoNota_NotaCredito' AND object_id = OBJECT_ID('Ventas.NotaCredito')
-)
     CREATE NONCLUSTERED INDEX ix_codigoNota_NotaCredito ON Ventas.NotaCredito(codigoNota)
-
+    GO
 
 --IF NOT EXISTS 
 --	(SELECT 1 FROM sys.indexes
