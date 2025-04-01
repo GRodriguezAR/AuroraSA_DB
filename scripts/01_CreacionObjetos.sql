@@ -44,7 +44,7 @@ CREATE TABLE Empresa.Cargo
 (
     idCargo INT IDENTITY(1,1),
     nombre VARCHAR(20) NOT NULL,
-    descripcion NVARCHAR(100) NOT NULL,
+    descripcion NVARCHAR(200) NOT NULL,
     activo BIT DEFAULT 1 NOT NULL ,
     CONSTRAINT PK_Cargo PRIMARY KEY (idCargo),
     CONSTRAINT UQ_Cargo_nombre UNIQUE (nombre),
@@ -57,7 +57,7 @@ CREATE TABLE Empresa.Turno
 (
     idTurno INT IDENTITY(1,1),
     acronimo CHAR(2) NOT NULL,
-    descripcion NVARCHAR(25) NOT NULL,
+    descripcion NVARCHAR(200) NOT NULL,
     activo BIT DEFAULT 1 NOT NULL ,
     CONSTRAINT PK_Turno PRIMARY KEY (idTurno),
     CONSTRAINT UQ_Turno_acronimo UNIQUE (acronimo),
@@ -112,7 +112,7 @@ GO
 CREATE TABLE Inventario.Producto
 (
     idProducto INT IDENTITY(1,1),
-    r NVARCHAR(100) COLLATE Modern_Spanish_CI_AI NOT NULL,
+    nombreProducto NVARCHAR(100) COLLATE Modern_Spanish_CI_AI NOT NULL,
     precioUnitario DECIMAL(10,2) NOT NULL,
     idLineaProducto INT NOT NULL,
     activo BIT DEFAULT 1 NOT NULL,   

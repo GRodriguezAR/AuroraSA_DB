@@ -121,7 +121,7 @@ SELECT * FROM Empresa.Empleado -- Campos sensibles encripados
 
 SELECT idEmpleado, legajo, nombre, apellido, genero,
     CONVERT(VARCHAR, DECRYPTBYKEY(cuil)) AS cuil,
-	CONVERT(VARCHAR, DECRYPTBYKEY(cuil)) AS telefono,
+	CONVERT(VARCHAR, DECRYPTBYKEY(telefono)) AS telefono,
 	CONVERT(NVARCHAR, DECRYPTBYKEY(domicilio)) AS domicilio, fechaAlta,
     CONVERT(VARCHAR, DECRYPTBYKEY(mailPersonal)) AS mailPersonal, mailEmpresa, idCargo, idSucursal, idTurno
 FROM Empresa.Empleado;

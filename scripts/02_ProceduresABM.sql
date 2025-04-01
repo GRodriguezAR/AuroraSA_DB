@@ -1119,7 +1119,7 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Ventas.Cliente
-CREATE  PROCEDURE Ventas.InsertarCliente_sp
+CREATE PROCEDURE Ventas.InsertarCliente_sp
     @dni                VARCHAR(25),
     @nombre				VARCHAR(30),
     @apellido			VARCHAR(30),
@@ -1131,7 +1131,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     
-    IF @dni NOT LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
+    IF @dni NOT LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' AND @dni <> '0' --Reservado para clientes sin registrar
     BEGIN
 		RAISERROR('El formato del dni es inválido.',16,1)
 		RETURN;
