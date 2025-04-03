@@ -246,52 +246,38 @@ GO
 -------------------------- CREACION DE INDICES --------------------------
 
 -- Indice codigo de Sucursal
-    CREATE UNIQUE NONCLUSTERED INDEX ix_codSucursal_Sucursal ON Empresa.Sucursal(codigoSucursal)
-    GO
+CREATE UNIQUE NONCLUSTERED INDEX ix_codSucursal_Sucursal ON Empresa.Sucursal(codigoSucursal)
+GO
 -- Indice acronimo de Turno
-    CREATE UNIQUE NONCLUSTERED INDEX ix_acronimo_Turno ON Empresa.Turno(acronimo)
-    GO
+CREATE UNIQUE NONCLUSTERED INDEX ix_acronimo_Turno ON Empresa.Turno(acronimo)
+GO
 -- Indice nombre de Cargo
-    CREATE UNIQUE NONCLUSTERED INDEX ix_nombre_Cargo ON Empresa.Cargo(nombre)
-    GO
+CREATE UNIQUE NONCLUSTERED INDEX ix_nombre_Cargo ON Empresa.Cargo(nombre)
+GO
 -- Indice legajo de Empleado
-    CREATE UNIQUE NONCLUSTERED INDEX ix_legajo_Empleado ON Empresa.Empleado(legajo)
-    GO
+CREATE UNIQUE NONCLUSTERED INDEX ix_legajo_Empleado ON Empresa.Empleado(legajo)
+GO
 -- Indice cuilHASH de Empleado
-    CREATE UNIQUE NONCLUSTERED INDEX ix_cuilHASH_Empleado ON Empresa.Empleado (cuilHASH) WITH (DATA_COMPRESSION = PAGE); 
-    GO
+CREATE UNIQUE NONCLUSTERED INDEX ix_cuilHASH_Empleado ON Empresa.Empleado (cuilHASH) WITH (DATA_COMPRESSION = PAGE); 
+GO
 -- Indice descripcion de LineaProducto
-    CREATE UNIQUE NONCLUSTERED INDEX ix_descripcion_LineaProducto ON Inventario.LineaProducto(descripcion)
-    GO
+CREATE UNIQUE NONCLUSTERED INDEX ix_descripcion_LineaProducto ON Inventario.LineaProducto(descripcion)
+GO
 -- Indice nombreProducto de Prodcuto
-    CREATE UNIQUE NONCLUSTERED INDEX ix_nombreProd_Producto ON Inventario.Producto(nombreProducto)
-    GO
+CREATE UNIQUE NONCLUSTERED INDEX ix_nombreProd_Producto ON Inventario.Producto(nombreProducto)
+GO
 -- Indice idLineaProducto de Prodcuto
-    CREATE NONCLUSTERED INDEX ix_idLineaProducto_Producto ON Inventario.Producto(idLineaProducto)
-    GO
+CREATE NONCLUSTERED INDEX ix_idLineaProducto_Producto ON Inventario.Producto(idLineaProducto)
+GO
 -- Indice dniHASH de Empleado
-    CREATE UNIQUE NONCLUSTERED INDEX ix_dniHASH_Cliente ON Ventas.Cliente (dniHASH)
-    GO
+CREATE UNIQUE NONCLUSTERED INDEX ix_dniHASH_Cliente ON Ventas.Cliente (dniHASH)
+GO
 -- Indice nombre de MedioPago
-    CREATE NONCLUSTERED INDEX ix_nombre_MedioPago ON Ventas.MedioPago(nombre)
-    GO
+CREATE NONCLUSTERED INDEX ix_nombre_MedioPago ON Ventas.MedioPago(nombre)
+GO
 -- Indice codigoFactura en Factura
-    CREATE NONCLUSTERED INDEX ix_codFactura_Factura ON Ventas.Factura(codigoFactura)
-    GO
+CREATE NONCLUSTERED INDEX ix_codFactura_Factura ON Ventas.Factura(codigoFactura)
+GO
 -- Indice codigoNota en NotaCredito
-    CREATE NONCLUSTERED INDEX ix_codigoNota_NotaCredito ON Ventas.NotaCredito(codigoNota)
-    GO
-
---IF NOT EXISTS 
---	(SELECT 1 FROM sys.indexes
---    WHERE name = 'ix_fechaFact' AND object_id = OBJECT_ID('Ventas.Factura')
---)
---    CREATE INDEX ix_fechaFact ON Ventas.Factura(fecha);
-
-
---IF NOT EXISTS (
---	SELECT 1 FROM sys.indexes
---    WHERE name = 'ix_sucFact' AND object_id = OBJECT_ID('Ventas.Factura')
---)
---    CREATE INDEX ix_sucFact ON Ventas.Factura(idSucursal);
-
+CREATE NONCLUSTERED INDEX ix_codigoNota_NotaCredito ON Ventas.NotaCredito(codigoNota)
+GO

@@ -8,3 +8,5 @@ E:\Proyectos\AuroraSA-DB\obj\Debug\Model.xml
 E:\Proyectos\AuroraSA-DB\obj\Debug\refactor.xml
 E:\Proyectos\AuroraSA-DB\obj\Debug\postdeploy.sql
 E:\Proyectos\AuroraSA-DB\obj\Debug\predeploy.sql
+E:\Proyectos\AuroraSA-DB\bin\Debug\master.dacpac
+E:\Proyectos\AuroraSA-DB\obj\Debug\AuroraSA.80D1B16A.Up2Date

@@ -1,6 +1,6 @@
 ﻿/*
 Aurora SA
-Script de creacion de base de datos, esquemas y encriptación.
+Script de creacion de base de datos y encriptación.
 GRodriguezAR
 */
 
@@ -14,26 +14,6 @@ GO
 
 USE [AuroraSA_DB]
 GO
-
-------------CREACION DE ESQUEMAS----------
---IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Empresa')
---    EXEC('CREATE SCHEMA Empresa')
-
---IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'Ventas')
---    EXEC('CREATE SCHEMA Ventas')
-
---IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Inventario')
---    EXEC('CREATE SCHEMA Inventario')
-
---IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Utilidades')
---    EXEC('CREATE SCHEMA Utilidades')
-
---IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Reportes')
---    EXEC('CREATE SCHEMA Reportes')
-
---IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name ='Seguridad')
---    EXEC('CREATE SCHEMA Seguridad')
---GO
 
 ---------- Encriptación ----------
 BEGIN TRY

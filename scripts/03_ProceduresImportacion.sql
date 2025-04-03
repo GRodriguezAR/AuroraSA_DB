@@ -4,44 +4,9 @@ Script de creacion de procedures de importación masiva
 GRodriguezAR
 */
 
-EXEC Inventario.CargarProductosCatalogoCSV_sp 'E:\data\Productos\catalogo.csv', 'E:\data\Informacion_complementaria.xlsx'
-EXEC Inventario.CargarProductosElectronicos_sp 'E:\data\Productos\Electronic accessories.xlsx', 1
-EXEC Inventario.CargarProductosImportados_sp 'E:\data\Productos\Productos_importados.xlsx', 'E:\data\Informacion_complementaria.xlsx', 1
-SELECT * FROM Inventario.Producto
-SELECT * FROM Inventario.LineaProducto
-EXEC Utilidades.ResetearTablas_sp
-
-EXEC Empresa.ImportarSucursales_sp 'E:\data\Informacion_complementaria.xlsx'
-SELECT * FROM Empresa.Sucursal
-EXEC Empresa.ImportarTurnos_sp 'E:\data\Informacion_complementaria.xlsx'
-SELECT * FROM Empresa.Turno
-EXEC Empresa.ImportarCargos_sp 'E:\data\Informacion_complementaria.xlsx'
-SELECT * FROM Empresa.Cargo
-EXEC Ventas.ImportarMedios_sp 'E:\data\Informacion_complementaria.xlsx'
-SELECT * FROM Ventas.MedioPago 
-
-OPEN SYMMETRIC KEY LlaveSimetrica DECRYPTION BY CERTIFICATE CertificadoSeguridad;
-EXEC Ventas.ImportarClientes_sp 'E:\data\Informacion_complementaria.xlsx'
-SELECT * FROM Ventas.Cliente
-SELECT idCliente, nombre, apellido,
-	   CONVERT(VARCHAR, DECRYPTBYKEY(dni)) AS dniD, genero, tipoCliente, puntos, fechaAlta, activo  
-FROM Ventas.Cliente order by DECRYPTBYKEY(dni)
-CLOSE SYMMETRIC KEY LlaveSimetrica;
-
-EXEC Empresa.ImportarEmpleados_sp 'E:\data\Informacion_complementaria.xlsx'
-SELECT idEmpleado, legajo, nombre, apellido, genero,
-    CONVERT(VARCHAR, DECRYPTBYKEY(cuil)) AS cuil,
-	CONVERT(VARCHAR, DECRYPTBYKEY(telefono)) AS telefono,
-	CONVERT(NVARCHAR, DECRYPTBYKEY(domicilio)) AS domicilio, fechaAlta,
-    CONVERT(VARCHAR, DECRYPTBYKEY(mailPersonal)) AS mailPersonal, mailEmpresa, idCargo, idSucursal, idTurno
-FROM Empresa.Empleado;
-
-EXEC Ventas.ImportarVentas_sp 'E:\data\facturas.csv'	
-SELECT * FROM Ventas.Factura order by codigoFactura asc
-SELECT * FROM Ventas.DetalleFactura order by idFactura, idDetalleFactura asc
 ---------------------------------------------------------------------------------------------------------------------------
 -- Importacion de catalogo.csv
-CREATE OR ALTER PROCEDURE Inventario.CargarProductosCatalogoCSV_sp
+CREATE PROCEDURE Inventario.CargarProductosCatalogoCSV_sp
     @rutaCatalogo      NVARCHAR(MAX),
     @rutaComplemento   NVARCHAR(MAX)
 AS
@@ -50,8 +15,6 @@ BEGIN
 
 	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 	BEGIN TRY
-		BEGIN TRANSACTION;
-
 		-- Crear tabla temporal para cargar los datos del CSV
 		CREATE TABLE #TempProductos (
 			[id] INT,
@@ -98,6 +61,7 @@ BEGIN
 		';
 		EXEC sp_executesql @sql;
 
+		BEGIN TRANSACTION;
 		-- Insertar nuevas líneas de producto que no existen en la tabla definitiva
 		INSERT INTO Inventario.LineaProducto(descripcion)
 		SELECT DISTINCT E.lineaNueva
@@ -146,7 +110,7 @@ GO
 
 -----------------------------------------------------------------------------------------------
 -- Importacion de productos electronicos
-CREATE OR ALTER PROCEDURE Inventario.CargarProductosElectronicos_sp
+CREATE PROCEDURE Inventario.CargarProductosElectronicos_sp
     @rutaCatalogo NVARCHAR(MAX),
 	@valorDolar	  DECIMAL(10,2)
 AS
@@ -155,8 +119,6 @@ BEGIN
 	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 	BEGIN TRY
-        BEGIN TRANSACTION;
-
 		-- Verificar existencia de la línea de producto "Electronico"
 		DECLARE @idLineaProd INT = (SELECT idLineaProd FROM Inventario.LineaProducto WHERE descripcion = 'Electronico');
 		IF @idLineaProd IS NULL
@@ -183,6 +145,7 @@ BEGIN
 		';
 		EXEC sp_executesql @sql;
 
+		BEGIN TRANSACTION;
 		-- Filtrar duplicados: quedarse solo con el registro con el precio máximo (o más reciente)
 		WITH ElecFiltrados AS (
 			SELECT *,
@@ -213,7 +176,7 @@ GO
 
 --------------------------------------------------------------------------------
 -- Importacion de productos importados
-CREATE OR ALTER PROCEDURE Inventario.CargarProductosImportados_sp
+CREATE PROCEDURE Inventario.CargarProductosImportados_sp
     @rutaCatalogo		NVARCHAR(MAX),
 	@rutaComplemento	NVARCHAR(MAX),
 	@valorDolar			DECIMAL(10,2)
@@ -223,8 +186,6 @@ BEGIN
 	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 	BEGIN TRY
-		BEGIN TRANSACTION;
-
 		-- Crear tabla temporal para cargar datos del XLSX
 		CREATE TABLE #TempProductos (
 			idProducto INT,
@@ -245,7 +206,7 @@ BEGIN
 				''Excel 12.0 Xml;HDR=YES;IMEX=1;Locale Identifier=1033;Database=' + @rutaCatalogo + ''',
 				''SELECT * FROM [Listado De Productos$]'')
 		';
-		EXEC sp_executesql @sql;
+		EXEC dbo.sp_executesql @sql;
 	
 		-- Crear tabla temporal para equivalencias
 		CREATE TABLE #TempEquivalenciaLineas (
@@ -261,7 +222,8 @@ BEGIN
 				''SELECT * FROM [Clasificacion productos$B1:C]'');
 		';
 		EXEC sp_executesql @sql;
-    
+		
+		BEGIN TRANSACTION;
 		-- Insertar nuevas líneas de producto (si no existen)
 		INSERT INTO Inventario.LineaProducto(descripcion)
 		SELECT DISTINCT E.lineaNueva
@@ -304,7 +266,7 @@ GO
 
 -----------------------------------------------------------------------------------------------
 -- Importacion de sucursales
-CREATE OR ALTER PROCEDURE Empresa.ImportarSucursales_sp
+CREATE PROCEDURE Empresa.ImportarSucursales_sp
     @rutaArchivo NVARCHAR(MAX) 
 AS
 BEGIN
@@ -312,8 +274,6 @@ BEGIN
 	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 	BEGIN TRY
-		BEGIN TRANSACTION;
-
 		-- Crear tabla temporal para cargar datos del XLSX
 		CREATE TABLE #TempSucursales (
 			codigoSucursal VARCHAR(25) COLLATE Modern_Spanish_CS_AS,
@@ -335,6 +295,7 @@ BEGIN
 		';
 		EXEC sp_executesql @sql;
 
+		BEGIN TRANSACTION;
 		-- Filtrar duplicados
 		WITH SucFiltrados AS (
 			SELECT *,
@@ -367,7 +328,7 @@ GO
 
 -----------------------------------------------------------------------------------------------
 -- Importacion de turnos
-CREATE OR ALTER PROCEDURE Empresa.ImportarTurnos_sp
+CREATE PROCEDURE Empresa.ImportarTurnos_sp
     @rutaArchivo NVARCHAR(MAX) 
 AS
 BEGIN
@@ -375,8 +336,6 @@ BEGIN
 	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 	BEGIN TRY
-		BEGIN TRANSACTION
-
 		-- Crear tabla temporal para cargar datos del XLSX
 		CREATE TABLE #TempTurnos (
 			acronimo VARCHAR(25) COLLATE Modern_Spanish_CS_AS,
@@ -395,6 +354,7 @@ BEGIN
 		';
 		EXEC sp_executesql @sql;
 
+		BEGIN TRANSACTION;
 		-- Filtrar duplicados
 		WITH TurFiltrados AS (
 			SELECT *,
@@ -424,7 +384,7 @@ GO
 
 -----------------------------------------------------------------------------------------------
 -- Importacion de cargos
-CREATE OR ALTER PROCEDURE Empresa.ImportarCargos_sp
+CREATE PROCEDURE Empresa.ImportarCargos_sp
     @rutaArchivo NVARCHAR(MAX) 
 AS
 BEGIN
@@ -432,8 +392,6 @@ BEGIN
 	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 	BEGIN TRY
-		BEGIN TRANSACTION
-
 		-- Crear tabla temporal para cargar datos del XLSX
 		CREATE TABLE #TempCargos (
 			nombre VARCHAR(25) COLLATE Modern_Spanish_CS_AS,
@@ -452,6 +410,7 @@ BEGIN
 		';
 		EXEC sp_executesql @sql;
 
+		BEGIN TRANSACTION;
 		-- Filtrado de duplicados
 		WITH CarFiltrados AS (
 			SELECT *,
@@ -480,7 +439,7 @@ END;
 GO
 -----------------------------------------------------------------------------------------------
 -- Importacion de medios de pago
-CREATE OR ALTER PROCEDURE Ventas.ImportarMedios_sp
+CREATE PROCEDURE Ventas.ImportarMedios_sp
     @rutaArchivo NVARCHAR(MAX) 
 AS
 BEGIN
@@ -488,8 +447,6 @@ BEGIN
 	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 	BEGIN TRY
-		BEGIN TRANSACTION
-
 		-- Crear tabla temporal para cargar datos del XLSX
 		CREATE TABLE #TempMedios (
 			nombre NVARCHAR(40) COLLATE Modern_Spanish_CS_AS
@@ -507,6 +464,7 @@ BEGIN
 		';
 		EXEC sp_executesql @sql;
 
+		BEGIN TRANSACTION;
 		-- Filtrado de duplicados
 		WITH MedFiltrados AS (
 			SELECT *,
@@ -533,16 +491,14 @@ END;
 GO
  -----------------------------------------------------------------------------------------------
 -- Importacion de empleados
-CREATE OR ALTER PROCEDURE Empresa.ImportarEmpleados_sp
+CREATE PROCEDURE Empresa.ImportarEmpleados_sp
     @rutaArchivo NVARCHAR(MAX) 
 AS
 BEGIN
     SET NOCOUNT ON;
 	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-
+	--DECLARE @rutaArchivo NVARCHAR(MAX) = 'E:\Proyectos\AuroraSA-DB\data\Informacion_complementaria.xlsx'
 	BEGIN TRY
-		BEGIN TRANSACTION
-
 		-- Crear tabla temporal para cargar datos del XLSX
 		CREATE TABLE #TempEmpleados (
 			legajo			INT,
@@ -552,7 +508,7 @@ BEGIN
 			cuil			VARCHAR(30)	COLLATE Modern_Spanish_CS_AS,
 			telefono		VARCHAR(30)	COLLATE Modern_Spanish_CS_AS,
 			domicilio		NVARCHAR(100) COLLATE Modern_Spanish_CS_AS,
-			fechaAlta		VARCHAR(30)	COLLATE Modern_Spanish_CS_AS,
+			fechaAlta		VARCHAR(100) COLLATE Modern_Spanish_CS_AS,
 			mailPersonal	VARCHAR(55) COLLATE Modern_Spanish_CS_AS,
 			mailEmpresa		VARCHAR(55) COLLATE Modern_Spanish_CS_AS,
 			cargo			VARCHAR(25) COLLATE Modern_Spanish_CS_AS,
@@ -565,18 +521,20 @@ BEGIN
 		DECLARE @cadenaSql NVARCHAR(MAX)
 		SET @cadenaSql = '
 			INSERT INTO #TempEmpleados (legajo, nombre, apellido, genero, cuil, telefono, domicilio, fechaAlta, mailPersonal, mailEmpresa, cargo, sucursal, turno)
-			SELECT Legajo, Nombre, Apellido, Genero, Cuil, FORMAT(Telefono, ''0''), Direccion, FechaAlta, EmailPersonal, EmailEmpresa, Cargo, Sucursal, Turno
+			SELECT Legajo, Nombre, Apellido, Genero, Cuil, Telefono, Direccion, FechaAlta, EmailPersonal, EmailEmpresa, Cargo, Sucursal, Turno
 			FROM OPENROWSET(''Microsoft.ACE.OLEDB.12.0'',
-				''Excel 12.0 Xml;HDR=YES;Database=' + @rutaArchivo + ''',
-				''SELECT * FROM [Empleados$]'');
+				''Excel 12.0 Xml;HDR=YES;IMEX=1;Database=' + @rutaArchivo + ''',
+				''SELECT * FROM [empleados$]'');
 		';
 		EXEC sp_executesql @cadenaSql;
-
+		
+		BEGIN TRANSACTION;
 		-- Filtramos duplicados, insertamos campos encriptados.
 		WITH EmpFiltrados AS (
 			SELECT *,
 				HASHBYTES('SHA2_512', cuil) as cuilHASH,
-				ROW_NUMBER() OVER (PARTITION BY cuil ORDER BY (SELECT NULL)) rn
+				ROW_NUMBER() OVER (PARTITION BY cuil ORDER BY (SELECT NULL)) rn1,
+				ROW_NUMBER() OVER (PARTITION BY legajo ORDER BY (SELECT NULL)) rn2
 			 FROM #TempEmpleados
 		) 
 		INSERT INTO Empresa.Empleado (legajo, nombre, apellido, genero, cuil, cuilHASH, telefono, domicilio, fechaAlta, mailPersonal, mailEmpresa, idCargo, idSucursal, idTurno)
@@ -599,9 +557,9 @@ BEGIN
 			JOIN Empresa.Sucursal S ON E.sucursal = S.codigoSucursal
 			JOIN Empresa.Cargo C	ON E.cargo	  = C.nombre
 			JOIN Empresa.Turno T	ON E.turno	  = T.acronimo
-		WHERE E.rn = 1	
-			AND NOT EXISTS ( SELECT 1 FROM Empresa.Empleado EE WHERE EE.cuilHASH = E.cuilHASH) 	
-			AND NOT EXISTS ( SELECT 1 FROM Empresa.Empleado EE WHERE EE.legajo = E.legajo);					   
+		WHERE E.rn1 = 1	AND E.rn2 = 1
+			AND NOT EXISTS (SELECT 1 FROM Empresa.Empleado EE WHERE EE.cuilHASH = E.cuilHASH) 	
+			AND NOT EXISTS (SELECT 1 FROM Empresa.Empleado EE WHERE EE.legajo = E.legajo);					   
  
 		DROP TABLE #TempEmpleados
 		COMMIT TRANSACTION;
@@ -618,7 +576,7 @@ GO
 
 --------------------------------------------------------------------------------
 -- Importacion de clientes
-CREATE OR ALTER PROCEDURE Ventas.ImportarClientes_sp
+CREATE PROCEDURE Ventas.ImportarClientes_sp
 	@rutaArchivo NVARCHAR(MAX) 
 AS
 BEGIN
@@ -626,8 +584,6 @@ BEGIN
 	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 	BEGIN TRY
-		BEGIN TRANSACTION
-
 		-- Crear tabla temporal para cargar datos XLSX
 		CREATE TABLE #TempClientes (
 			nombre VARCHAR(30) COLLATE Modern_Spanish_CS_AS,
@@ -643,13 +599,14 @@ BEGIN
 		DECLARE @sql NVARCHAR(MAX);
 		SET @sql = '
 			INSERT INTO #TempClientes (nombre, apellido, genero, dni, tipoCliente, puntos)
-			SELECT nombre, apellido, genero, FORMAT(dni, ''0''), tipoCliente, puntos
+			SELECT Nombre, Apellido, Genero, FORMAT(Dni, ''0''), Tipo, Puntos
 			FROM OPENROWSET(''Microsoft.ACE.OLEDB.12.0'',
 				''Excel 12.0 Xml;HDR=YES;IMEX=1;Database=' + @rutaArchivo + ''',
 				''SELECT * FROM [clientes$]'');
 		';
 		EXEC sp_executesql @sql;
 		
+		BEGIN TRANSACTION;
 		-- Filtrar duplicados, se insertan campos encriptados
 		WITH CliFiltrados AS (
 			SELECT *,
@@ -660,17 +617,17 @@ BEGIN
 		)
 		INSERT INTO Ventas.Cliente (nombre, apellido, dni, dniHASH, genero, tipoCliente, puntos, fechaAlta)
 		SELECT 
-			nombre,
-			apellido,
-			EncryptByKey(Key_GUID('LlaveSimetrica'),dni),
-			dniHASH,
-			SUBSTRING(genero,1,1),
-			tipoCliente,
-			TRY_CONVERT(INT, puntos) AS puntos,
+			CF.nombre,
+			CF.apellido,
+			EncryptByKey(Key_GUID('LlaveSimetrica'),CF.dni),
+			CF.dniHASH,
+			SUBSTRING(CF.genero,1,1),
+			CF.tipoCliente,
+			TRY_CONVERT(INT, CF.puntos) AS puntos,
 			GETDATE()
-		FROM CliFiltrados 
-		WHERE rn = 1
-			AND NOT EXISTS (SELECT 1 FROM Ventas.Cliente C WHERE C.dniHASH = dniHASH);
+		FROM CliFiltrados CF
+		WHERE CF.rn = 1
+			AND NOT EXISTS (SELECT 1 FROM Ventas.Cliente C WHERE C.dniHASH = CF.dniHASH);
 
 		DROP TABLE #TempClientes;
 		COMMIT TRANSACTION;
@@ -687,7 +644,7 @@ GO
 
 --------------------------------------------------------------------------------
 -- Importacion de ventas
-CREATE OR ALTER PROCEDURE Ventas.ImportarVentas_sp
+CREATE PROCEDURE Ventas.ImportarVentas_sp
     @rutaArchivo NVARCHAR(MAX)
 AS
 BEGIN
@@ -695,12 +652,6 @@ BEGIN
 	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 	BEGIN TRY
-		BEGIN TRANSACTION
-
-		-- Cliente 0 corresponde a un cliente no registrado, se inserta en caso de que no exista
-		IF NOT EXISTS (SELECT 1 FROM Ventas.Cliente WHERE dniHASH = HASHBYTES('SHA2_256', '0'))
-			EXEC Ventas.InsertarCliente_sp '0','No registrado', 'N/A','M','Normal'
-
 		-- Crear tabla temporal para cargar datos del CSV
 		CREATE TABLE #TempVentas (
 			CodigoFactura VARCHAR(30) COLLATE Modern_Spanish_CS_AS,
@@ -744,6 +695,14 @@ BEGIN
 		FROM #TempVentas
 		GROUP BY CodigoFactura;
 
+		BEGIN TRANSACTION;
+
+		-- Cliente 0 corresponde a un cliente no registrado, se inserta en caso de que no exista
+		OPEN SYMMETRIC KEY LlaveSimetrica DECRYPTION BY CERTIFICATE CertificadoSeguridad; 
+		IF NOT EXISTS (SELECT 1 FROM Ventas.Cliente WHERE dniHASH = HASHBYTES('SHA2_256', '0'))
+			EXEC Ventas.InsertarCliente_sp '0','No registrado', 'N/A','M','Normal'
+		CLOSE SYMMETRIC KEY LlaveSimetrica;
+
 		-- Inserción en tabla de cada factura. (Se utiliza MAX ya que los campos se repiten por mismo codigo de factura)
 		INSERT INTO Ventas.Factura (codigoFactura, tipoFactura, fecha, detallesPago, total, idMedioPago, idCliente, idEmpleado, idSucursal)
 		SELECT 
@@ -786,7 +745,8 @@ BEGIN
 		INSERT INTO Ventas.DetalleFactura (idFactura, idDetalleFactura, idProducto, cantidad, precioUnitario, subtotal)
 		SELECT F.idFactura, V.numDetalle, P.idProducto, V.Cantidad, V.Precio, V.Cantidad * V.Precio as subtotal
 		FROM VentaDetalle V JOIN Ventas.Factura F ON V.CodigoFactura = F.codigoFactura
-							JOIN Inventario.Producto P ON V.Producto = P.nombreProducto;
+							JOIN Inventario.Producto P ON V.Producto = P.nombreProducto
+		WHERE NOT EXISTS (SELECT 1 FROM Ventas.DetalleFactura DF WHERE DF.idFactura = F.idFactura AND (DF.idProducto = P.idProducto OR DF.idDetalleFactura = V.numDetalle)) 
 
 		DROP TABLE #TempVentas;
 		DROP TABLE #TotalesPorFactura
@@ -798,6 +758,8 @@ BEGIN
 		IF OBJECT_ID('tempdb..#TempVentas') IS NOT NULL DROP TABLE #TempVentas;
 		IF OBJECT_ID('tempdb..#TotalesPorFactura') IS NOT NULL DROP TABLE #TotalesPorFactura;
 		IF OBJECT_ID('tempdb..#GruposDetalle') IS NOT NULL DROP TABLE #GruposDetalle;
+		IF EXISTS (SELECT 1 FROM sys.openkeys WHERE key_name = KEY_ID('LlaveSimetrica'))
+			CLOSE SYMMETRIC KEY LlaveSimetrica;
         IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
         DECLARE @ErrorMsg NVARCHAR(4000) = ERROR_MESSAGE();

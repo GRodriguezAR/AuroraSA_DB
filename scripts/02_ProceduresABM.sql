@@ -54,7 +54,7 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Empresa.Sucursal
-CREATE  PROCEDURE Empresa.InsertarSucursal_sp
+CREATE PROCEDURE Empresa.InsertarSucursal_sp
 	@codigoSucursal	 VARCHAR(25),
     @direccion       NVARCHAR(100),
     @ciudad          VARCHAR(50),
@@ -118,7 +118,7 @@ END;
 GO
 
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.ActualizarSucursal_sp
+CREATE PROCEDURE Empresa.ActualizarSucursal_sp
     @codigoSucursal  VARCHAR(25),
     @direccion       NVARCHAR(100) = NULL,
     @ciudad          VARCHAR(50) = NULL,
@@ -198,7 +198,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.EliminarSucursal_sp
+CREATE PROCEDURE Empresa.EliminarSucursal_sp
     @codigoSucursal VARCHAR(25)
 AS
 BEGIN
@@ -217,7 +217,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.ReactivarSucursal_sp
+CREATE PROCEDURE Empresa.ReactivarSucursal_sp
     @codigoSucursal VARCHAR(25)
 AS
 BEGIN
@@ -238,7 +238,7 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Empresa.Cargo
-CREATE  PROCEDURE Empresa.InsertarCargo_sp
+CREATE PROCEDURE Empresa.InsertarCargo_sp
 	@nombre      VARCHAR(20),
     @descripcion NVARCHAR(100)
 AS
@@ -274,7 +274,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.ActualizarCargo_sp
+CREATE PROCEDURE Empresa.ActualizarCargo_sp
 	@nombre      VARCHAR(20),
     @descripcion NVARCHAR(100) = NULL,
 	@nuevoNombre VARCHAR(20) = NULL
@@ -322,7 +322,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.EliminarCargo_sp
+CREATE PROCEDURE Empresa.EliminarCargo_sp
 	@nombre VARCHAR(20)
 AS
 BEGIN
@@ -340,7 +340,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.ReactivarCargo_sp
+CREATE PROCEDURE Empresa.ReactivarCargo_sp
 	@nombre VARCHAR(20)
 AS
 BEGIN
@@ -360,7 +360,7 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Empresa.Turno
-CREATE  PROCEDURE Empresa.InsertarTurno_sp
+CREATE PROCEDURE Empresa.InsertarTurno_sp
 	@acronimo    VARCHAR(25),
     @descripcion VARCHAR(25)
 AS
@@ -396,7 +396,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.ActualizarTurno_sp
+CREATE PROCEDURE Empresa.ActualizarTurno_sp
 	@acronimo       VARCHAR(25),
     @descripcion    NVARCHAR(25) = NULL,
 	@nuevoAcronimo  VARCHAR(25) = NULL
@@ -450,7 +450,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.EliminarTurno_sp
+CREATE PROCEDURE Empresa.EliminarTurno_sp
 	@acronimo VARCHAR(25) 
 AS
 BEGIN
@@ -474,7 +474,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.ReactivarTurno_sp
+CREATE PROCEDURE Empresa.ReactivarTurno_sp
 	@acronimo VARCHAR(25) 
 AS
 BEGIN
@@ -500,7 +500,7 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Empresa.Empleado
-CREATE  PROCEDURE Empresa.InsertarEmpleado_sp
+CREATE PROCEDURE Empresa.InsertarEmpleado_sp
     @legajo         INT,
     @nombre			VARCHAR(30),
     @apellido		VARCHAR(30),
@@ -658,7 +658,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.ActualizarEmpleado_sp
+CREATE PROCEDURE Empresa.ActualizarEmpleado_sp
     @legajo         INT,
     @nombre			VARCHAR(30) = NULL,
     @apellido		VARCHAR(30) = NULL,
@@ -820,7 +820,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.EliminarEmpleado_sp
+CREATE PROCEDURE Empresa.EliminarEmpleado_sp
     @legajo INT
 AS
 BEGIN
@@ -844,7 +844,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Empresa.ReactivarEmpleado_sp
+CREATE PROCEDURE Empresa.ReactivarEmpleado_sp
     @legajo INT
 AS
 BEGIN
@@ -870,7 +870,7 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Inventario.LineaProducto
-CREATE  PROCEDURE Inventario.InsertarLineaProducto_sp
+CREATE PROCEDURE Inventario.InsertarLineaProducto_sp
     @descripcion VARCHAR(30)
 AS
 BEGIN
@@ -893,7 +893,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Inventario.ActualizarLineaProducto_sp
+CREATE PROCEDURE Inventario.ActualizarLineaProducto_sp
     @descripcion      VARCHAR(30),
     @nuevaDescripcion VARCHAR(30) = NULL,
     @activo           BIT = NULL
@@ -934,7 +934,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Inventario.EliminarLineaProducto_sp
+CREATE PROCEDURE Inventario.EliminarLineaProducto_sp
 	@descripcion VARCHAR(30)
 AS
 BEGIN
@@ -952,7 +952,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Inventario.ReactivarLineaProducto_sp
+CREATE PROCEDURE Inventario.ReactivarLineaProducto_sp
 	@descripcion VARCHAR(30)
 AS
 BEGIN
@@ -972,7 +972,7 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Inventario.Producto	
-CREATE  PROCEDURE Inventario.InsertarProducto_sp
+CREATE PROCEDURE Inventario.InsertarProducto_sp
     @nombreProducto   NVARCHAR(100),
     @precioUnitario   DECIMAL(10,2),
     @lineaProducto    VARCHAR(30)
@@ -1021,7 +1021,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Inventario.ActualizarProducto_sp
+CREATE PROCEDURE Inventario.ActualizarProducto_sp
     @nombreProducto   NVARCHAR(100),
     @lineaProducto    VARCHAR(30) = NULL,
     @precioUnitario   DECIMAL(10,2) = NULL,
@@ -1081,7 +1081,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Inventario.EliminarProducto_sp
+CREATE PROCEDURE Inventario.EliminarProducto_sp
     @nombreProducto   NVARCHAR(100)
 AS
 BEGIN
@@ -1099,7 +1099,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Inventario.ReactivarProducto_sp
+CREATE PROCEDURE Inventario.ReactivarProducto_sp
     @nombreProducto   NVARCHAR(100)
 AS
 BEGIN
@@ -1212,7 +1212,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.ActualizarCliente_sp
+CREATE PROCEDURE Ventas.ActualizarCliente_sp
     @dni                VARCHAR(25),
     @nombre				VARCHAR(30) = NULL,
     @apellido			VARCHAR(30) = NULL,
@@ -1316,7 +1316,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.EliminarCliente_sp
+CREATE PROCEDURE Ventas.EliminarCliente_sp
     @dni VARCHAR(25)
 AS
 BEGIN
@@ -1341,7 +1341,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.ReactivarCliente_sp
+CREATE PROCEDURE Ventas.ReactivarCliente_sp
     @dni VARCHAR(25)
 AS
 BEGIN
@@ -1367,7 +1367,7 @@ END;
 GO
 ----------------------------------------------------------------------------------------------
 -- ABM Ventas.MedioPago
-CREATE  PROCEDURE Ventas.InsertarMedioPago_sp
+CREATE PROCEDURE Ventas.InsertarMedioPago_sp
     @nombre      NVARCHAR(30)
 AS
 BEGIN
@@ -1390,7 +1390,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.ActualizarMedioPago_sp
+CREATE PROCEDURE Ventas.ActualizarMedioPago_sp
     @nombre      NVARCHAR(30),
     @nuevoNombre NVARCHAR(30)
 AS
@@ -1421,7 +1421,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.EliminarMedioPago_sp
+CREATE PROCEDURE Ventas.EliminarMedioPago_sp
 	@nombre NVARCHAR(30)
 AS
 BEGIN
@@ -1439,7 +1439,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.ReactivarMedioPago_sp
+CREATE PROCEDURE Ventas.ReactivarMedioPago_sp
 	@nombre NVARCHAR(30)
 AS
 BEGIN
@@ -1459,7 +1459,7 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Ventas.Factura
-CREATE  PROCEDURE Ventas.InsertarFactura_sp
+CREATE PROCEDURE Ventas.InsertarFactura_sp
     @codigoFactura		VARCHAR(25),
 	@tipoFactura		VARCHAR(25),
     @fecha				DATETIME = NULL,
@@ -1565,7 +1565,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.ActualizarFactura_sp
+CREATE PROCEDURE Ventas.ActualizarFactura_sp
     @codigoFactura		VARCHAR(25),
 	@tipoFactura		VARCHAR(25) = NULL,
     @fecha				DATETIME = NULL,
@@ -1684,7 +1684,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.EliminarFactura_sp
+CREATE PROCEDURE Ventas.EliminarFactura_sp
     @codigoFactura VARCHAR(25)
 AS
 BEGIN
@@ -1708,7 +1708,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.ReactivarFactura_sp
+CREATE PROCEDURE Ventas.ReactivarFactura_sp
     @codigoFactura VARCHAR(25)
 AS
 BEGIN
@@ -1734,7 +1734,7 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Ventas.DetalleFactura
-CREATE  PROCEDURE Ventas.InsertarDetalleFactura_sp
+CREATE PROCEDURE Ventas.InsertarDetalleFactura_sp
     @codigoFactura  VARCHAR(25),
     @producto       NVARCHAR(100),
     @cantidad       INT
@@ -1809,7 +1809,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.ActualizarDetalleFactura_sp
+CREATE PROCEDURE Ventas.ActualizarDetalleFactura_sp
     @codigoFactura  VARCHAR(25),
     @numDetalle     INT,
     @producto       NVARCHAR(100) = NULL,
@@ -1908,7 +1908,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.EliminarDetalleFactura_sp
+CREATE PROCEDURE Ventas.EliminarDetalleFactura_sp
     @codigoFactura  VARCHAR(25),
     @numDetalle     INT
 AS
@@ -1949,7 +1949,7 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABM Ventas.NotaCredito
-CREATE  PROCEDURE Ventas.InsertarNotaCredito_sp
+CREATE PROCEDURE Ventas.InsertarNotaCredito_sp
     @codigoNota     VARCHAR(25),
     @codigoFactura  VARCHAR(25),
 	@cliente        VARCHAR(25),
@@ -2046,7 +2046,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.ActualizarNotaCredito_sp
+CREATE PROCEDURE Ventas.ActualizarNotaCredito_sp
     @codigoNota     VARCHAR(25),
 	@cliente        VARCHAR(25) = NULL,
     @empleado       INT = NULL,
@@ -2128,7 +2128,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.EliminarNotaCredito_sp
+CREATE PROCEDURE Ventas.EliminarNotaCredito_sp
     @codigoNota  VARCHAR(25)
 AS
 BEGIN
@@ -2153,7 +2153,7 @@ END;
 GO
 
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.ReactivarNotaCredito_sp
+CREATE PROCEDURE Ventas.ReactivarNotaCredito_sp
     @codigoNota  VARCHAR(25)
 AS
 BEGIN
@@ -2179,7 +2179,7 @@ GO
 
 ----------------------------------------------------------------------------------------------
 -- ABN Ventas.DetalleNota
-CREATE  PROCEDURE Ventas.InsertarDetalleNota_sp
+CREATE PROCEDURE Ventas.InsertarDetalleNota_sp
     @codigoNota     VARCHAR(25),
     @producto       NVARCHAR(100),
     @cantidad       INT
@@ -2283,7 +2283,7 @@ BEGIN
 END;
 GO
 ----------------------------------------------------------------------------------------------
-CREATE  PROCEDURE Ventas.ActualizarDetalleNota_sp
+CREATE PROCEDURE Ventas.ActualizarDetalleNota_sp
     @codigoNota     VARCHAR(25),
     @numDetalle		INT,
     @producto       NVARCHAR(100) = NULL,
